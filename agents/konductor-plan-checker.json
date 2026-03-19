@@ -1,0 +1,11 @@
+{
+    "name": "konductor-plan-checker",
+    "description": "Validates execution plans for coverage, sizing, dependencies, and completeness. Fixes issues in-place.",
+    "tools": ["read", "write", "shell", "code"],
+    "allowedTools": ["read", "write", "shell", "code"],
+    "resources": [
+        "file://.konductor/requirements.md",
+        "file://.konductor/phases/*/plans/*.md"
+    ],
+    "prompt": ""
+}

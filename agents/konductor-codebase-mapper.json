@@ -1,0 +1,8 @@
+{
+    "name": "konductor-codebase-mapper",
+    "description": "Analyzes existing codebases for brownfield projects. Maps file structure, tech stack, patterns, conventions, testing, and integrations.",
+    "tools": ["read", "write", "shell", "code"],
+    "allowedTools": ["read", "write", "shell", "code"],
+    "resources": [],
+    "prompt": ""
+}

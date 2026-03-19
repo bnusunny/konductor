@@ -1,0 +1,12 @@
+{
+    "name": "konductor-verifier",
+    "description": "Post-execution verification. Performs 3-level check (exists, substantive, wired) on all artifacts and key links.",
+    "tools": ["read", "write", "shell", "code"],
+    "allowedTools": ["read", "write", "shell", "code"],
+    "resources": [
+        "file://.konductor/requirements.md",
+        "file://.konductor/phases/*/plans/*.md",
+        "file://.kiro/steering/**/*.md"
+    ],
+    "prompt": ""
+}

@@ -1,0 +1,13 @@
+{
+    "name": "konductor-executor",
+    "description": "Executes a single implementation plan. Writes code, runs tests, commits atomically per task. Follows deviation rules for auto-fixing bugs.",
+    "tools": ["read", "write", "shell", "code"],
+    "allowedTools": ["read", "write", "shell", "code"],
+    "resources": [
+        "file://.konductor/project.md",
+        "file://.konductor/requirements.md",
+        "file://.konductor/phases/*/plans/*.md",
+        "file://.kiro/steering/**/*.md"
+    ],
+    "prompt": ""
+}

@@ -1,0 +1,12 @@
+{
+    "name": "konductor-researcher",
+    "description": "Phase ecosystem research. Investigates libraries, patterns, risks, and best practices for a given phase.",
+    "tools": ["read", "write", "shell", "code"],
+    "allowedTools": ["read", "write", "shell", "code"],
+    "resources": [
+        "file://.konductor/project.md",
+        "file://.konductor/requirements.md",
+        "file://.kiro/steering/**/*.md"
+    ],
+    "prompt": ""
+}

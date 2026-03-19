@@ -1,0 +1,8 @@
+{
+    "name": "konductor-discoverer",
+    "description": "Interactive project discovery. Asks questions about vision, users, tech stack, and constraints. Generates project.md, requirements.md, and roadmap.md.",
+    "tools": ["read", "write", "shell", "code"],
+    "allowedTools": ["read", "write", "shell", "code"],
+    "resources": [],
+    "prompt": ""
+}

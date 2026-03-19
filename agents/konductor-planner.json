@@ -1,0 +1,13 @@
+{
+    "name": "konductor-planner",
+    "description": "Decomposes phases into wave-ordered execution plans with task breakdowns, dependency graphs, and requirement tracing.",
+    "tools": ["read", "write", "shell", "code"],
+    "allowedTools": ["read", "write", "shell", "code"],
+    "resources": [
+        "file://.konductor/project.md",
+        "file://.konductor/requirements.md",
+        "file://.konductor/roadmap.md",
+        "file://.kiro/steering/**/*.md"
+    ],
+    "prompt": ""
+}
