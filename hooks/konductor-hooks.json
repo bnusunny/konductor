@@ -1,0 +1,16 @@
+{
+    "hooks": [
+        {
+            "event": "PostToolUse",
+            "matcher": "write",
+            "command": "~/.kiro/bin/konductor-hook",
+            "timeout_ms": 2000
+        },
+        {
+            "event": "PreToolUse",
+            "matcher": "shell",
+            "command": "~/.kiro/bin/konductor-hook",
+            "timeout_ms": 1000
+        }
+    ]
+}
