@@ -1,0 +1,20 @@
+{
+    "name": "konductor",
+    "description": "Spec-driven development orchestrator. Manages project initialization, phase planning, execution, verification, and shipping. Say 'next' to advance the pipeline, or use specific commands like 'plan phase 01', 'execute', 'verify', 'status'.",
+    "tools": ["read", "write", "shell", "code"],
+    "allowedTools": ["read", "write", "shell", "code"],
+    "resources": [
+        "skill://.kiro/skills/konductor-*/SKILL.md",
+        "file://.kiro/steering/**/*.md",
+        "file://.konductor/state.toml",
+        "file://.konductor/config.toml",
+        "file://.konductor/roadmap.md"
+    ],
+    "toolsSettings": {
+        "subagent": {
+            "availableAgents": ["konductor-*"],
+            "trustedAgents": ["konductor-*"]
+        }
+    },
+    "prompt": ""
+}
