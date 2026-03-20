@@ -22,3 +22,4 @@ jobs:
         id: release
         with:
           release-type: simple
+          release-as: 0.1.0
