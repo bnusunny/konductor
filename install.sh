@@ -11,9 +11,6 @@ if [[ "$1" == "--global" || "$1" == "-g" ]]; then
 elif [[ "$1" == "--local" || "$1" == "-l" ]]; then
   SCOPE="local"
   TARGET_DIR="./.kiro"
-elif [[ -d "./.kiro" ]]; then
-  SCOPE="local"
-  TARGET_DIR="./.kiro"
 else
   SCOPE="global"
   TARGET_DIR="$HOME/.kiro"
@@ -91,15 +88,22 @@ else
   echo "Downloading from: $DOWNLOAD_URL"
 
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$DOWNLOAD_URL" -o "$HOOK_BINARY"
+    if ! curl -fsSL "$DOWNLOAD_URL" -o "$HOOK_BINARY" 2>/dev/null; then
+      echo "⚠ Hook binary not available (no release found). Skipping."
+      rm -f "$HOOK_BINARY"
+    else
+      chmod +x "$HOOK_BINARY"
+    fi
   elif command -v wget >/dev/null 2>&1; then
-    wget -q "$DOWNLOAD_URL" -O "$HOOK_BINARY"
+    if ! wget -q "$DOWNLOAD_URL" -O "$HOOK_BINARY" 2>/dev/null; then
+      echo "⚠ Hook binary not available (no release found). Skipping."
+      rm -f "$HOOK_BINARY"
+    else
+      chmod +x "$HOOK_BINARY"
+    fi
   else
-    echo "Error: curl or wget is required to download the hook binary"
-    exit 1
+    echo "⚠ curl or wget is required to download the hook binary. Skipping."
   fi
-
-  chmod +x "$HOOK_BINARY"
 fi
 
 echo ""
