@@ -37,5 +37,5 @@ kiro-cli --agent konductor
 > status
 ```
 
-[Get Started :material-arrow-right:](getting-started/installation.md){ .md-button .md-button--primary }
+[Get Started →](getting-started/installation.md){ .md-button .md-button--primary }
 
