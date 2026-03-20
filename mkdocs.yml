@@ -1,0 +1,55 @@
+site_name: Konductor
+site_url: https://konductor.cloud
+docs_dir: docs-site
+site_description: Spec-driven development for Kiro CLI
+repo_url: https://github.com/bnusunny/konductor
+repo_name: bnusunny/konductor
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - search.highlight
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+  - Pipeline:
+    - Overview: pipeline/overview.md
+    - Initialize: pipeline/initialize.md
+    - Plan: pipeline/plan.md
+    - Execute: pipeline/execute.md
+    - Verify: pipeline/verify.md
+    - Ship: pipeline/ship.md
+  - Architecture:
+    - How It Works: architecture/how-it-works.md
+  - Commands: commands.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
