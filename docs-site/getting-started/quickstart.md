@@ -8,6 +8,8 @@ kiro-cli --agent konductor
 
 ## Initialize Your Project
 
+Type `@k-init` and press Tab, or simply type:
+
 ```
 > initialize my project
 ```
@@ -20,28 +22,44 @@ Konductor will interview you to understand your project goals, then generate:
 
 ## Advance Through the Pipeline
 
-Use `next` to move through each phase automatically:
+Use `@k-next` (or type `next`) to move through each phase automatically:
 
 ```
 > next
 ```
 
-Or run specific phases:
+Or run specific phases using prompt shortcuts:
 
 ```
-> plan phase 01
-> execute
-> verify
-> ship
+> @k-plan 01
+> @k-exec
+> @k-verify
+> @k-ship
 ```
 
 ## Check Status
 
 ```
-> status
+> @k-status
 ```
 
 Shows current phase, progress, and next steps.
+
+## All Prompt Shortcuts
+
+Type `@k-` then press Tab to see all available commands:
+
+| Shortcut | Description |
+|----------|-------------|
+| `@k-init` | Initialize a new project |
+| `@k-plan` | Plan a phase (requires phase number) |
+| `@k-exec` | Execute the current phase |
+| `@k-verify` | Verify the current phase |
+| `@k-ship` | Ship and finalize |
+| `@k-next` | Advance to next step |
+| `@k-status` | Show project status |
+| `@k-discuss` | Discuss a phase (requires phase number) |
+| `@k-map` | Map the existing codebase |
 
 ## Pipeline Flow
 

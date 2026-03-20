@@ -1,10 +1,20 @@
 # How It Works
 
-Konductor is built on four key components.
+Konductor is built on five key components.
 
 ## Orchestrator Agent
 
-The main `konductor` agent manages pipeline state and delegates work to specialized subagents. It reads `.konductor/state.toml` to track progress and coordinates phase transitions.
+The main `konductor` agent manages pipeline state and delegates work to specialized subagents. It coordinates phase transitions using MCP tools for deterministic state management.
+
+## MCP Server (`konductor mcp`)
+
+A local MCP server provides typed prompts and tools over stdio:
+
+- **9 prompts** with Tab-completable shortcuts (`@k-init`, `@k-plan`, etc.) — with typed arguments where needed
+- **State management tools** (`state_get`, `state_transition`, `state_add_blocker`, `state_resolve_blocker`) — eliminates fragile LLM-generated TOML
+- **Query tools** (`plans_list`, `status`) — returns structured JSON instead of requiring the LLM to parse files
+
+Built with [rmcp](https://github.com/modelcontextprotocol/rust-sdk) (official Rust MCP SDK).
 
 ## Skills
 
@@ -26,13 +36,12 @@ Specialized agents handle specific tasks:
 | `konductor-executor` | Implements code following TDD principles |
 | `konductor-verifier` | Validates tests and acceptance criteria |
 
-## Hook System
+## Hook System (`konductor hook`)
 
-A Rust binary (`konductor-hook`) provides:
+The same `konductor` binary processes hook events:
 
-- File modification tracking
-- Safety guardrails (prevents dangerous operations)
-- Pipeline state validation
+- File modification tracking (detects changes to tracked files)
+- Safety guardrails (prevents dangerous operations like `rm -rf /`)
 
 ## Context Rot Prevention
 
@@ -44,20 +53,30 @@ Each subagent starts with a fresh context containing only:
 
 This prevents context pollution and ensures decisions are based on documented requirements, not accumulated conversation history.
 
+## Unified Binary
+
+The `konductor` binary serves two roles via subcommands:
+
+```
+konductor mcp    # Start MCP server (stdio transport)
+konductor hook   # Process hook events from stdin
+```
+
 ## File Layout
 
 ```
 .kiro/                          # Kiro configuration
-├── agents/                     # Agent definitions
+├── agents/                     # Agent definitions (includes MCP server config)
 ├── skills/                     # Skill instructions
 ├── hooks/                      # Hook configuration
-└── bin/                        # Hook binary
+└── bin/
+    └── konductor               # Unified binary (mcp server + hook processor)
 
 .konductor/                     # Project state
 ├── project.md                  # Project vision
 ├── requirements.md             # Requirements
 ├── roadmap.md                  # Milestones
-├── state.toml                  # Pipeline state
+├── state.toml                  # Pipeline state (managed by MCP tools)
 ├── phases/                     # Phase plans
 └── .results/                   # Execution results
 ```
