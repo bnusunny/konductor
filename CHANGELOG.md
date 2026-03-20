@@ -1,0 +1,25 @@
+# Changelog
+
+## 0.1.0 (2026-03-20)
+
+
+### Features
+
+* add all worker agent configs ([7f9e5d8](https://github.com/bnusunny/konductor/commit/7f9e5d87f1e7a4531f02d783eb4a376cfdfdc8e2))
+* add hook system with Rust binary for file tracking and safety guardrails ([0fa8374](https://github.com/bnusunny/konductor/commit/0fa8374fbf3517f24f1155b96dda2216c6f7c822))
+* add installer script ([2ac5a6e](https://github.com/bnusunny/konductor/commit/2ac5a6e5af0c37d4227f519c46367fecb9ccfea4))
+* add konductor-exec skill with execution and TDD references ([830a287](https://github.com/bnusunny/konductor/commit/830a287cfae3b82e7f8316c538a2d590dc432dbf))
+* add konductor-init skill with questioning reference ([ed93aa2](https://github.com/bnusunny/konductor/commit/ed93aa2832fe796874c8e6c463ff9b6505306ef1))
+* add konductor-next super-skill ([d284c76](https://github.com/bnusunny/konductor/commit/d284c76a7116466dcc98d34b2723c7adba481cb7))
+* add konductor-plan skill with planning and verification references ([4d0b074](https://github.com/bnusunny/konductor/commit/4d0b0742c813621fb66a53ced8cf4e033cb5a787))
+* add konductor-verify skill ([694f17f](https://github.com/bnusunny/konductor/commit/694f17f6cf29cba12a3490dc9aa3eafacd235f0d))
+* add one-line installer for GitHub Pages ([03e3dc7](https://github.com/bnusunny/konductor/commit/03e3dc76da49c34545aaf975777a768a0f0d7791))
+* add status, ship, discuss, and map-codebase skills ([12fbdcd](https://github.com/bnusunny/konductor/commit/12fbdcd4030f1726d1380885b6b61115d6b8f225))
+* repository scaffold with orchestrator agent config ([4dfdfe2](https://github.com/bnusunny/konductor/commit/4dfdfe275c35ab82dca610326238ba04038f50bf))
+
+
+### Bug Fixes
+
+* default to global scope and make hook binary download optional ([b67788c](https://github.com/bnusunny/konductor/commit/b67788c7e513b33b2d05c018bb050764ddc1f04d))
+* replace Material icon in button with arrow character ([17f144b](https://github.com/bnusunny/konductor/commit/17f144b9772c32f1afffbd379899958710d51410))
+* use standard markdown on homepage instead of Material icons ([82e44b1](https://github.com/bnusunny/konductor/commit/82e44b1413641b581eb0ad6f801de9737d3afd42))
