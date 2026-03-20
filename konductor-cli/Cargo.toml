@@ -1,0 +1,25 @@
+[package]
+name = "konductor"
+version = "0.1.0"
+edition = "2021"
+description = "Unified CLI for Konductor — MCP server and hook processor"
+license = "MIT"
+
+[[bin]]
+name = "konductor"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+rmcp = { version = "1.2", features = ["server", "transport-io"] }
+schemars = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+toml = "0.8"
+chrono = "0.4"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true

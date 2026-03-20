@@ -1,8 +1,8 @@
 {
     "name": "konductor",
-    "description": "Spec-driven development orchestrator. Manages project initialization, phase planning, execution, verification, and shipping. Say 'next' to advance the pipeline, or use specific commands like 'plan phase 01', 'execute', 'verify', 'status'.",
+    "description": "Spec-driven development orchestrator. Manages project initialization, phase planning, execution, verification, and shipping. Use @k-plan, @k-exec, @k-verify, @k-next, @k-status, or other prompts to trigger commands.",
     "tools": ["read", "write", "shell", "code"],
-    "allowedTools": ["read", "write", "shell", "code"],
+    "allowedTools": ["read", "write", "shell", "code", "@konductor"],
     "resources": [
         "skill://.kiro/skills/konductor-*/SKILL.md",
         "file://.kiro/steering/**/*.md",
@@ -16,5 +16,11 @@
             "trustedAgents": ["konductor-*"]
         }
     },
-    "prompt": ""
+    "mcpServers": {
+        "konductor": {
+            "command": "~/.kiro/bin/konductor",
+            "args": ["mcp"]
+        }
+    },
+    "prompt": "Use the konductor MCP tools (state_get, state_transition, state_add_blocker, state_resolve_blocker, plans_list, status) for all state management instead of reading/writing state.toml directly."
 }

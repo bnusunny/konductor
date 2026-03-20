@@ -3,18 +3,30 @@ set -e
 
 KONDUCTOR_VERSION="${KONDUCTOR_VERSION:-latest}"
 REPO="bnusunny/konductor"
+FORCE=false
 
-# Detect scope: global or local
-if [[ "$1" == "--global" || "$1" == "-g" ]]; then
-  SCOPE="global"
-  TARGET_DIR="$HOME/.kiro"
-elif [[ "$1" == "--local" || "$1" == "-l" ]]; then
-  SCOPE="local"
-  TARGET_DIR="./.kiro"
-else
-  SCOPE="global"
-  TARGET_DIR="$HOME/.kiro"
-fi
+# Parse arguments
+for arg in "$@"; do
+  case "$arg" in
+    --global|-g) SCOPE="global"; TARGET_DIR="$HOME/.kiro" ;;
+    --local|-l) SCOPE="local"; TARGET_DIR="./.kiro" ;;
+    --force|-f) FORCE=true ;;
+  esac
+done
+
+# Defaults
+SCOPE="${SCOPE:-global}"
+TARGET_DIR="${TARGET_DIR:-$HOME/.kiro}"
+
+# Safe copy: skip existing files unless --force
+safe_cp() {
+  local src="$1" dst="$2"
+  if [[ -e "$dst" && "$FORCE" != true ]]; then
+    echo "  ⏭ Skipping $(basename "$dst") (already exists, use --force to overwrite)"
+    return
+  fi
+  cp "$src" "$dst"
+}
 
 echo "Installing Konductor ($SCOPE scope) to $TARGET_DIR..."
 
@@ -30,7 +42,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Copy agents
 if [[ -d "$SCRIPT_DIR/agents" ]]; then
   echo "Installing agents..."
-  cp -r "$SCRIPT_DIR/agents"/*.json "$TARGET_DIR/agents/"
+  for f in "$SCRIPT_DIR/agents"/*.json; do
+    safe_cp "$f" "$TARGET_DIR/agents/$(basename "$f")"
+  done
 fi
 
 # Copy skills
@@ -39,7 +53,11 @@ if [[ -d "$SCRIPT_DIR/skills" ]]; then
   for skill_dir in "$SCRIPT_DIR/skills"/konductor-*; do
     if [[ -d "$skill_dir" ]]; then
       skill_name=$(basename "$skill_dir")
-      cp -r "$skill_dir" "$TARGET_DIR/skills/"
+      if [[ -d "$TARGET_DIR/skills/$skill_name" && "$FORCE" != true ]]; then
+        echo "  ⏭ Skipping $skill_name/ (already exists, use --force to overwrite)"
+      else
+        cp -r "$skill_dir" "$TARGET_DIR/skills/"
+      fi
     fi
   done
 fi
@@ -47,21 +65,20 @@ fi
 # Copy hooks
 if [[ -f "$SCRIPT_DIR/hooks/konductor-hooks.json" ]]; then
   echo "Installing hooks..."
-  cp "$SCRIPT_DIR/hooks/konductor-hooks.json" "$TARGET_DIR/hooks/"
+  safe_cp "$SCRIPT_DIR/hooks/konductor-hooks.json" "$TARGET_DIR/hooks/konductor-hooks.json"
 fi
 
-# Install hook binary
-HOOK_BINARY="$TARGET_DIR/bin/konductor-hook"
-if [[ -f "$SCRIPT_DIR/konductor-hook/target/release/konductor-hook" ]]; then
-  # Use locally built binary
-  echo "Installing locally built hook binary..."
-  cp "$SCRIPT_DIR/konductor-hook/target/release/konductor-hook" "$HOOK_BINARY"
-  chmod +x "$HOOK_BINARY"
+# Install konductor binary (unified: mcp server + hook processor)
+KONDUCTOR_BINARY="$TARGET_DIR/bin/konductor"
+if [[ -e "$KONDUCTOR_BINARY" && "$FORCE" != true ]]; then
+  echo "  ⏭ Skipping konductor binary (already exists, use --force to overwrite)"
+elif [[ -f "$SCRIPT_DIR/konductor-cli/target/release/konductor" ]]; then
+  echo "Installing locally built konductor binary..."
+  cp "$SCRIPT_DIR/konductor-cli/target/release/konductor" "$KONDUCTOR_BINARY"
+  chmod +x "$KONDUCTOR_BINARY"
 else
-  # Download prebuilt binary from GitHub releases
-  echo "Downloading prebuilt hook binary..."
+  echo "Downloading prebuilt konductor binary..."
 
-  # Detect platform
   OS=$(uname -s | tr '[:upper:]' '[:lower:]')
   ARCH=$(uname -m)
 
@@ -77,7 +94,7 @@ else
     *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
   esac
 
-  BINARY_NAME="konductor-hook-${PLATFORM}-${ARCH}"
+  BINARY_NAME="konductor-${PLATFORM}-${ARCH}"
 
   if [[ "$KONDUCTOR_VERSION" == "latest" ]]; then
     DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/${BINARY_NAME}"
@@ -88,21 +105,21 @@ else
   echo "Downloading from: $DOWNLOAD_URL"
 
   if command -v curl >/dev/null 2>&1; then
-    if ! curl -fsSL "$DOWNLOAD_URL" -o "$HOOK_BINARY" 2>/dev/null; then
-      echo "⚠ Hook binary not available (no release found). Skipping."
-      rm -f "$HOOK_BINARY"
+    if ! curl -fsSL "$DOWNLOAD_URL" -o "$KONDUCTOR_BINARY" 2>/dev/null; then
+      echo "⚠ Binary not available (no release found). Skipping."
+      rm -f "$KONDUCTOR_BINARY"
     else
-      chmod +x "$HOOK_BINARY"
+      chmod +x "$KONDUCTOR_BINARY"
     fi
   elif command -v wget >/dev/null 2>&1; then
-    if ! wget -q "$DOWNLOAD_URL" -O "$HOOK_BINARY" 2>/dev/null; then
-      echo "⚠ Hook binary not available (no release found). Skipping."
-      rm -f "$HOOK_BINARY"
+    if ! wget -q "$DOWNLOAD_URL" -O "$KONDUCTOR_BINARY" 2>/dev/null; then
+      echo "⚠ Binary not available (no release found). Skipping."
+      rm -f "$KONDUCTOR_BINARY"
     else
-      chmod +x "$HOOK_BINARY"
+      chmod +x "$KONDUCTOR_BINARY"
     fi
   else
-    echo "⚠ curl or wget is required to download the hook binary. Skipping."
+    echo "⚠ curl or wget is required to download the binary. Skipping."
   fi
 fi
 
@@ -111,7 +128,13 @@ echo "✓ Konductor installed successfully!"
 echo ""
 echo "Usage:"
 echo "  kiro-cli --agent konductor"
-echo "  > initialize my project"
-echo "  > next"
+echo ""
+echo "Prompts available (type @ then Tab to autocomplete):"
+echo "  @k-init    @k-plan    @k-exec    @k-verify"
+echo "  @k-ship    @k-next    @k-status  @k-discuss  @k-map"
+echo ""
+echo "MCP tools available:"
+echo "  state_get, state_transition, state_add_blocker,"
+echo "  state_resolve_blocker, plans_list, status"
 echo ""
 echo "For more information, see: https://github.com/${REPO}"
