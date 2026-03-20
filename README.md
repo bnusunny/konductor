@@ -28,7 +28,7 @@ cd konductor
 Or use the one-line installer:
 
 ```bash
-curl -fsSL https://konductor.dev/install | bash
+curl -fsSL https://konductor.cloud/install | bash
 ```
 
 Installs to `~/.kiro/` (global) or `./.kiro/` (local project).
