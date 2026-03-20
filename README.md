@@ -31,7 +31,7 @@ Or use the one-line installer:
 curl -fsSL https://konductor.cloud/install | bash
 ```
 
-Installs to `~/.kiro/` (global) or `./.kiro/` (local project).
+Installs to `~/.kiro/` (global) or `./.kiro/` (local project). Use `--force` to overwrite existing files.
 
 ## Quick Start
 
@@ -44,30 +44,30 @@ kiro-cli --agent konductor
 Initialize your project:
 
 ```
-> initialize my project
+> @k-init
 ```
 
 Advance through the pipeline:
 
 ```
-> next
-> next
-> next
+> @k-next
+> @k-next
+> @k-next
 ```
 
 Check current status:
 
 ```
-> status
+> @k-status
 ```
 
 Execute specific phases:
 
 ```
-> plan phase 01
-> execute
-> verify
-> ship
+> @k-plan 01
+> @k-exec
+> @k-verify
+> @k-ship
 ```
 
 ## Pipeline Diagram
@@ -113,6 +113,19 @@ Execute specific phases:
 | `map-codebase` | `@k-map` | Analyze existing code structure, patterns, and conventions |
 
 > **Tip:** Type `@k-` then press Tab to autocomplete any Konductor command.
+
+## MCP Tools
+
+The orchestrator agent uses these tools via the built-in MCP server for deterministic state management:
+
+| Tool | Description |
+|------|-------------|
+| `state_get` | Read current pipeline state from `state.toml` |
+| `state_transition` | Advance to a new step (with validation) |
+| `state_add_blocker` | Add a blocker to the current phase |
+| `state_resolve_blocker` | Resolve a blocker for a phase |
+| `plans_list` | List plans for a phase with wave and completion status |
+| `status` | Get a structured status report of the entire project |
 
 ## How It Works
 
@@ -257,8 +270,8 @@ Contributions are welcome! Please:
 git clone https://github.com/bnusunny/konductor.git
 cd konductor
 
-# Build the hook binary
-cd konductor-hook
+# Build the konductor binary
+cd konductor-cli
 cargo build --release
 
 # Install locally
@@ -269,8 +282,8 @@ cd ..
 ### Running Tests
 
 ```bash
-# Test the hook binary
-cd konductor-hook
+# Test the konductor binary
+cd konductor-cli
 cargo test
 
 # Test skills by running the installer
