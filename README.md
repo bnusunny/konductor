@@ -100,33 +100,41 @@ Execute specific phases:
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `initialize` | Start a new project, discover requirements, generate spec docs |
-| `next` | Advance to the next pipeline phase automatically |
-| `plan` | Generate phase plans with tasks and acceptance criteria |
-| `exec` | Execute tasks for current phase (TDD workflow) |
-| `verify` | Run tests and validate acceptance criteria |
-| `status` | Show current phase, progress, and next steps |
-| `ship` | Commit work, create release notes, open PR |
-| `discuss` | Ask questions about the project, codebase, or pipeline |
-| `map-codebase` | Analyze existing code structure, patterns, and conventions |
+| Command | Prompt Shortcut | Description |
+|---------|----------------|-------------|
+| `initialize` | `@k-init` | Start a new project, discover requirements, generate spec docs |
+| `next` | `@k-next` | Advance to the next pipeline phase automatically |
+| `plan` | `@k-plan` | Generate phase plans with tasks and acceptance criteria |
+| `exec` | `@k-exec` | Execute tasks for current phase (TDD workflow) |
+| `verify` | `@k-verify` | Run tests and validate acceptance criteria |
+| `status` | `@k-status` | Show current phase, progress, and next steps |
+| `ship` | `@k-ship` | Commit work, create release notes, open PR |
+| `discuss` | `@k-discuss` | Ask questions about the project, codebase, or pipeline |
+| `map-codebase` | `@k-map` | Analyze existing code structure, patterns, and conventions |
+
+> **Tip:** Type `@k-` then press Tab to autocomplete any Konductor command.
 
 ## How It Works
 
-Konductor is built on four key components:
+Konductor is built on five key components:
 
 **1. Orchestrator Agent**
-The main `konductor` agent manages pipeline state and delegates work to specialized subagents. It reads `.konductor/state.toml` to track progress and coordinates phase transitions.
+The main `konductor` agent manages pipeline state and delegates work to specialized subagents. It coordinates phase transitions using MCP tools for deterministic state management.
 
-**2. Skills**
+**2. MCP Server (`konductor mcp`)**
+A local MCP server provides:
+- 9 prompts with Tab-completable shortcuts (`@k-init`, `@k-plan`, etc.) — with typed arguments where needed
+- State management tools (`state_get`, `state_transition`, `state_add_blocker`, `state_resolve_blocker`) — eliminates fragile LLM-generated TOML
+- Query tools (`plans_list`, `status`) — returns structured JSON instead of requiring the LLM to parse files
+
+**3. Skills**
 Each command is a skill (`konductor-init`, `konductor-plan`, `konductor-exec`, etc.) with structured instructions. Skills define:
 - When to trigger (keywords like "initialize", "next", "plan")
 - Step-by-step execution logic
 - Output artifacts and verification steps
 - Reference materials for best practices
 
-**3. Worker Subagents**
+**4. Worker Subagents**
 Specialized agents handle specific tasks:
 - `konductor-discoverer` — Interviews users to understand project goals
 - `konductor-researcher` — Analyzes codebases and documents patterns
@@ -134,11 +142,10 @@ Specialized agents handle specific tasks:
 - `konductor-executor` — Implements code following TDD principles
 - `konductor-verifier` — Validates tests and acceptance criteria
 
-**4. Hook System**
-A Rust binary (`konductor-hook`) provides:
+**5. Hook System (`konductor hook`)**
+The same `konductor` binary processes hook events:
 - File modification tracking (detects changes to tracked files)
-- Safety guardrails (prevents dangerous operations)
-- Pipeline state validation (ensures prerequisites are met)
+- Safety guardrails (prevents dangerous operations like `rm -rf /`)
 
 ### Context Rot Prevention
 
@@ -190,7 +197,7 @@ EOF
 ```
 .kiro/
 ├── agents/
-│   ├── konductor.json           # Main orchestrator
+│   ├── konductor.json           # Main orchestrator (includes MCP server config)
 │   ├── konductor-discoverer.json
 │   ├── konductor-planner.json
 │   └── ...
@@ -204,7 +211,7 @@ EOF
 ├── hooks/
 │   └── konductor-hooks.json      # Hook configuration
 ├── bin/
-│   └── konductor-hook           # Rust binary
+│   └── konductor                # Unified binary (mcp server + hook processor)
 └── steering/
     ├── structure.md             # Codebase analysis
     └── tech.md                  # Tech stack details
