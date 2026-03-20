@@ -1,9 +1,8 @@
-name: Release
+name: Build Release Binaries
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
 
 permissions:
   contents: write
@@ -46,28 +45,9 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }}
         working-directory: konductor-hook
 
-      - name: Rename binary
-        run: cp konductor-hook/target/${{ matrix.target }}/release/konductor-hook ${{ matrix.name }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload binary to release
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: ${{ matrix.name }}
-          path: ${{ matrix.name }}
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            konductor-hook-linux-x86_64/konductor-hook-linux-x86_64
-            konductor-hook-linux-arm64/konductor-hook-linux-arm64
-            konductor-hook-macos-x86_64/konductor-hook-macos-x86_64
-            konductor-hook-macos-arm64/konductor-hook-macos-arm64
-          generate_release_notes: true
+          file: konductor-hook/target/${{ matrix.target }}/release/konductor-hook
+          asset_name: ${{ matrix.name }}
+          tag: ${{ github.ref }}
