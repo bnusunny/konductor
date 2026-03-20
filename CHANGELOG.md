@@ -5,6 +5,14 @@
 
 ### Features
 
+* add unified konductor binary with MCP server and hook subcommands ([7f11640](https://github.com/bnusunny/konductor/commit/7f116405e231cf00227d58aba5619593f256b1bb))
+* unified konductor binary with MCP server and hook subcommands ([1de12ef](https://github.com/bnusunny/konductor/commit/1de12ef5847d82a027bfa4fe1e87d664fbe67959))
+
+## [0.1.0](https://github.com/bnusunny/konductor/compare/v0.1.0...v0.1.0) (2026-03-20)
+
+
+### Features
+
 * add all worker agent configs ([7f9e5d8](https://github.com/bnusunny/konductor/commit/7f9e5d87f1e7a4531f02d783eb4a376cfdfdc8e2))
 * add hook system with Rust binary for file tracking and safety guardrails ([0fa8374](https://github.com/bnusunny/konductor/commit/0fa8374fbf3517f24f1155b96dda2216c6f7c822))
 * add installer script ([2ac5a6e](https://github.com/bnusunny/konductor/commit/2ac5a6e5af0c37d4227f519c46367fecb9ccfea4))
