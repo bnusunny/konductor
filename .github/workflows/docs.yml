@@ -37,7 +37,7 @@ jobs:
           cp docs/CNAME site/CNAME
 
       - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: site
 
