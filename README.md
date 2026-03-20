@@ -271,6 +271,10 @@ cargo test
 kiro-cli --agent konductor
 ```
 
+## Acknowledgments
+
+Konductor is inspired by [Get Shit Done (GSD)](https://github.com/gsd-build/get-shit-done), a spec-driven development framework for AI-assisted coding.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
