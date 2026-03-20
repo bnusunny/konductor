@@ -2,16 +2,14 @@
 
 **Spec-driven development for Kiro CLI** — orchestrates project planning, execution, verification, and shipping through a structured pipeline.
 
-<div class="grid cards" markdown>
-
-- :material-rocket-launch: **Initialize** — Discover goals, generate specs
-- :material-magnify: **Research** — Analyze codebase, map patterns
-- :material-clipboard-list: **Plan** — Break work into phases with tasks
-- :material-code-braces: **Execute** — Implement with TDD workflow
-- :material-check-circle: **Verify** — Validate tests and quality gates
-- :material-ship-wheel: **Ship** — Commit, release, move to next phase
-
-</div>
+| Phase | Description |
+|-------|-------------|
+| 🚀 **Initialize** | Discover goals, generate specs |
+| 🔍 **Research** | Analyze codebase, map patterns |
+| 📋 **Plan** | Break work into phases with tasks |
+| 💻 **Execute** | Implement with TDD workflow |
+| ✅ **Verify** | Validate tests and quality gates |
+| 🚢 **Ship** | Commit, release, move to next phase |
 
 ## Quick Install
 
