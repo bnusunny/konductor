@@ -83,6 +83,26 @@ assert_min_file_count "$TEST_DIR/.konductor/phases" "*-summary.md" 1 "at least 1
 assert_min_file_count "$TEST_DIR" "*.py" 1 "at least 1 Python file created"
 log_step_done
 
+# --- Step 3b: Verify hooks fired during execution ---
+
+log_step "Step 3b: Verify hooks"
+
+# PostToolUse hook should have tracked written files
+assert_tracking_log_exists
+assert_tracking_log_contains "\.py" "tracking log recorded Python files"
+
+# Show what the hook tracked
+if [[ -f "$TEST_DIR/.konductor/.tracking/modified-files.log" ]]; then
+  echo "  Hook tracked files:"
+  sort -u "$TEST_DIR/.konductor/.tracking/modified-files.log" | while read -r f; do
+    echo "    $f"
+  done
+fi
+
+# PreToolUse hook should block destructive commands
+assert_hook_blocks_destructive
+log_step_done
+
 # --- Step 4: Verify ---
 
 log_step "Step 4: Verify phase"
@@ -98,6 +118,13 @@ echo ""
 echo -e "${CYAN}═══ Artifact Summary ═══${NC}"
 echo "Files in .konductor/:"
 find "$TEST_DIR/.konductor" -type f | sed "s|$TEST_DIR/||" | sort
+echo ""
+echo "Hook tracking log:"
+if [[ -f "$TEST_DIR/.konductor/.tracking/modified-files.log" ]]; then
+  echo "  $(wc -l < "$TEST_DIR/.konductor/.tracking/modified-files.log") entries, $(sort -u "$TEST_DIR/.konductor/.tracking/modified-files.log" | wc -l) unique files"
+else
+  echo "  (not created)"
+fi
 echo ""
 echo "Project files:"
 find "$TEST_DIR" -maxdepth 2 -name "*.py" -o -name "*.txt" -o -name "*.md" | grep -v .konductor | grep -v synthetic-project | sed "s|$TEST_DIR/||" | sort || echo "  (none)"

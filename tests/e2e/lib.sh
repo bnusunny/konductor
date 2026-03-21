@@ -156,6 +156,69 @@ setup_test_dir() {
   local script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   cp -r "$script_dir/synthetic-project" "$TEST_DIR/synthetic-project"
+
+  # Install hook config so kiro-cli triggers konductor hooks
+  local hooks_dir="$TEST_DIR/.kiro/hooks"
+  mkdir -p "$hooks_dir"
+
+  # Resolve konductor binary — prefer the one in PATH, fall back to ~/.kiro/bin
+  local konductor_bin
+  konductor_bin=$(command -v konductor 2>/dev/null || echo "$HOME/.kiro/bin/konductor")
+
+  cat > "$hooks_dir/konductor-hooks.json" << EOF
+{
+  "hooks": [
+    {
+      "event": "PostToolUse",
+      "matcher": "write",
+      "command": "$konductor_bin hook",
+      "timeout_ms": 2000
+    },
+    {
+      "event": "PreToolUse",
+      "matcher": "shell",
+      "command": "$konductor_bin hook",
+      "timeout_ms": 1000
+    }
+  ]
+}
+EOF
+  echo -e "${CYAN}Hook config installed: $hooks_dir/konductor-hooks.json${NC}"
+}
+
+# --- Hook assertions ---
+
+assert_tracking_log_exists() {
+  local log="$TEST_DIR/.konductor/.tracking/modified-files.log"
+  if [[ -f "$log" ]] && [[ -s "$log" ]]; then
+    log_pass "hook tracking log exists and non-empty"
+  else
+    log_fail "hook tracking log missing or empty: $log"
+  fi
+}
+
+assert_tracking_log_contains() {
+  local pattern="$1"
+  local label="${2:-tracking log contains '$pattern'}"
+  local log="$TEST_DIR/.konductor/.tracking/modified-files.log"
+  if [[ -f "$log" ]] && grep -q "$pattern" "$log"; then
+    log_pass "$label"
+  else
+    log_fail "$label"
+  fi
+}
+
+assert_hook_blocks_destructive() {
+  local konductor_bin
+  konductor_bin=$(command -v konductor 2>/dev/null || echo "$HOME/.kiro/bin/konductor")
+  local input='{"hook_event_name":"PreToolUse","tool_name":"shell","tool_input":{"command":"rm -rf /"}}'
+  local exit_code=0
+  echo "$input" | "$konductor_bin" hook 2>/dev/null || exit_code=$?
+  if [[ $exit_code -eq 2 ]]; then
+    log_pass "hook blocks destructive command (exit code 2)"
+  else
+    log_fail "hook should block destructive command with exit 2, got $exit_code"
+  fi
 }
 
 teardown_test_dir() {
