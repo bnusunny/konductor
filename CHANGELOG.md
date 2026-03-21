@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/bnusunny/konductor/compare/v0.2.1...v0.2.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* **ci:** ensure build job runs on tag-triggered workflows ([#16](https://github.com/bnusunny/konductor/issues/16)) ([da9d948](https://github.com/bnusunny/konductor/commit/da9d948b8851d3901d1fa1b9d99b4e772ee70549))
+
 ## [0.2.1](https://github.com/bnusunny/konductor/compare/v0.2.0...v0.2.1) (2026-03-21)
 
 
