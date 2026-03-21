@@ -219,6 +219,40 @@ fi
 
 echo ""
 echo "✓ Konductor installed successfully!"
+
+# Ensure konductor binary is on PATH
+BIN_DIR="$TARGET_DIR/bin"
+if ! command -v konductor >/dev/null 2>&1; then
+  # Add to PATH for current session
+  export PATH="$BIN_DIR:$PATH"
+
+  if [[ "$SCOPE" == "global" ]]; then
+    # Add to shell profile for future sessions
+    SHELL_NAME=$(basename "${SHELL:-/bin/bash}")
+    case "$SHELL_NAME" in
+      zsh)  PROFILE="$HOME/.zshrc" ;;
+      fish) PROFILE="$HOME/.config/fish/config.fish" ;;
+      *)    PROFILE="$HOME/.bashrc" ;;
+    esac
+
+    PATH_LINE="export PATH=\"$BIN_DIR:\$PATH\""
+    if [[ -f "$PROFILE" ]] && grep -qF "$BIN_DIR" "$PROFILE" 2>/dev/null; then
+      : # Already in profile
+    elif [[ -f "$PROFILE" ]]; then
+      echo "" >> "$PROFILE"
+      echo "# Konductor" >> "$PROFILE"
+      echo "$PATH_LINE" >> "$PROFILE"
+      echo "  Added $BIN_DIR to PATH in $PROFILE"
+      echo "  Run: source $PROFILE (or restart your shell)"
+    else
+      echo "  ⚠ Add $BIN_DIR to your PATH manually:"
+      echo "    $PATH_LINE"
+    fi
+  else
+    echo "  ⚠ Local install: add .kiro/bin to PATH in your project, e.g.:"
+    echo "    export PATH=\".kiro/bin:\$PATH\""
+  fi
+fi
 echo ""
 echo "Usage:"
 echo "  kiro-cli --agent konductor"
