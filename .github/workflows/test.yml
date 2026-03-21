@@ -1,0 +1,64 @@
+name: Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run unit and integration tests
+        run: cargo test
+        working-directory: konductor-cli
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+        working-directory: konductor-cli
+
+  e2e:
+    runs-on: ubuntu-latest
+    if: ${{ vars.KONDUCTOR_E2E == '1' }}
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build konductor binary
+        run: cargo build --release
+        working-directory: konductor-cli
+
+      - name: Install konductor
+        run: |
+          mkdir -p ~/.kiro/bin
+          cp konductor-cli/target/release/konductor ~/.kiro/bin/konductor
+          chmod +x ~/.kiro/bin/konductor
+
+      - name: Run E2E benchmark
+        env:
+          KONDUCTOR_E2E: "1"
+          KONDUCTOR_TIMEOUT: "300"
+        run: bash tests/e2e/benchmark.sh
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: tests/e2e/last-results.toml
+
+      - name: Check for regressions
+        run: bash tests/e2e/compare.sh
