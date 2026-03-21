@@ -135,11 +135,18 @@ fi
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Copy agents
+# Copy agents (patch binary path for local installs)
 if [[ -d "$SCRIPT_DIR/agents" ]]; then
   echo "Installing agents..."
   for f in "$SCRIPT_DIR/agents"/*.json; do
-    safe_cp "$f" "$TARGET_DIR/agents/$(basename "$f")"
+    DST="$TARGET_DIR/agents/$(basename "$f")"
+    if [[ -e "$DST" && "$FORCE" != true ]]; then
+      echo "  ⏭ Skipping $(basename "$DST") (already exists, use --force to overwrite)"
+    elif [[ "$SCOPE" == "local" ]]; then
+      sed 's|~/.kiro/bin/konductor|.kiro/bin/konductor|g' "$f" > "$DST"
+    else
+      cp "$f" "$DST"
+    fi
   done
 fi
 
