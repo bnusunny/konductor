@@ -38,16 +38,16 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            name: konductor-hook-linux-x86_64
+            name: konductor-linux-x86_64
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
-            name: konductor-hook-linux-arm64
+            name: konductor-linux-arm64
           - target: x86_64-apple-darwin
             os: macos-latest
-            name: konductor-hook-macos-x86_64
+            name: konductor-macos-x86_64
           - target: aarch64-apple-darwin
             os: macos-latest
-            name: konductor-hook-macos-arm64
+            name: konductor-macos-arm64
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -67,11 +67,11 @@ jobs:
 
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
-        working-directory: konductor-hook
+        working-directory: konductor-cli
 
       - name: Upload binary to release
         uses: svenstaro/upload-release-action@v2
         with:
-          file: konductor-hook/target/${{ matrix.target }}/release/konductor-hook
+          file: konductor-cli/target/${{ matrix.target }}/release/konductor
           asset_name: ${{ matrix.name }}
           tag: ${{ needs.release-please.outputs.tag_name }}
