@@ -18,11 +18,15 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
+      - uses: actions/checkout@v4
+      - name: Read version
+        id: version
+        run: echo "version=$(cat version.txt)" >> "$GITHUB_OUTPUT"
       - uses: googleapis/release-please-action@v4
         id: release
         with:
           release-type: simple
-          release-as: 0.1.0
+          release-as: ${{ steps.version.outputs.version }}
 
   build:
     needs: release-please
