@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/bnusunny/konductor/compare/v0.2.0...v0.2.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* **ci:** align release binary names with install.sh expectations ([f7173e6](https://github.com/bnusunny/konductor/commit/f7173e601829f8ada07ca92e57736b753fc19332))
+* **ci:** align release binary names with install.sh expectations ([b462cbc](https://github.com/bnusunny/konductor/commit/b462cbcc4d2f3d8f08fc1d8ddf108a4b68fb6f6f))
+
 ## [0.2.0](https://github.com/bnusunny/konductor/compare/v0.1.0...v0.2.0) (2026-03-21)
 
 
