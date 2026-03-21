@@ -1,12 +1,9 @@
-# Plan 001 Summary: Install Script Hardening
+# Plan 001 Summary: Synthetic Test Project and E2E Test Script
 
 ## Status: Complete
 
 ## Changes
-- Added `usage()` function and `--help|-h` flag
-- Added `verify_binary()` — validates downloaded file is ELF/Mach-O using `file` command
-- Added `verify_checksum()` — downloads .sha256 file, verifies with sha256sum/shasum
-- Added `download()` helper — consolidates curl/wget logic
-- Added permission checks after mkdir with actionable error messages
-- Improved error messages for unsupported OS/arch with supported values listed
-- Checksum verification is optional — warns if no .sha256 file available
+- Created `tests/e2e/synthetic-project/spec.md` — Python CLI calculator spec with 4 requirements
+- Created `tests/e2e/lib.sh` — bash helper library with: konductor_chat(), assert_file_exists(), assert_file_contains(), assert_state_step(), assert_min_file_count(), setup/teardown_test_dir(), logging with colors and timing
+- Created `tests/e2e/run.sh` — E2E test runner that drives kiro-cli through init→plan→exec→verify, validates artifacts at each step, gated behind KONDUCTOR_E2E=1
+- All scripts pass syntax check

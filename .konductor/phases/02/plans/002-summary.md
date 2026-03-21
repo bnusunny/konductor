@@ -1,11 +1,9 @@
-# Plan 002 Summary: CI Pipeline — Tests, Checksums, and Version Sync
+# Plan 002 Summary: Benchmark Harness and Baseline
 
 ## Status: Complete
 
 ## Changes
-- Added `test` job to build-release.yml that runs `cargo test` and `cargo clippy -- -D warnings`
-- Build job now `needs: test` — tests gate the release
-- Added checksum generation step: creates .sha256 file per binary
-- Added checksum upload step: uploads .sha256 alongside each binary
-- Synced Cargo.toml version from 0.1.0 → 0.2.1 to match version.txt
-- `konductor --version` now reports 0.2.1
+- Created `tests/e2e/benchmark.sh` — wraps pipeline with per-step timing, credit tracking, metric collection (plan count, gap count, verification status), writes results.toml
+- Created `tests/e2e/baseline.toml` — template with upper-bound timing limits and quality thresholds
+- Created `tests/e2e/compare.sh` — loads baseline and results, flags regressions (>2x timing, plan count below minimum, gap count above maximum, verification status change), exits 1 on regression
+- All scripts pass syntax check

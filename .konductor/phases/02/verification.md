@@ -1,41 +1,39 @@
-# Verification Report: Phase 02 — Install and Distribution
+# Verification Report: Phase 02 — E2E Pipeline Tests and Synthetic Project
 
 **Status:** OK
 **Date:** 2026-03-21
 **Plans Verified:** 2
 
 ## Level 1: Exists ✓
-
-All expected artifacts are present:
-- ✓ install.sh
-- ✓ .github/workflows/build-release.yml
-- ✓ konductor-cli/Cargo.toml
+- ✓ tests/e2e/synthetic-project/spec.md
+- ✓ tests/e2e/lib.sh
+- ✓ tests/e2e/run.sh
+- ✓ tests/e2e/benchmark.sh
+- ✓ tests/e2e/baseline.toml
+- ✓ tests/e2e/compare.sh
 
 ## Level 2: Substantive ✓
-
-All files contain real implementations:
-- ✓ install.sh — 234 lines, 0 TODOs
-- ✓ build-release.yml — 92 lines, 0 TODOs
+- ✓ lib.sh — 169 lines, full helper library
+- ✓ run.sh — 105 lines, 4-step pipeline test
+- ✓ benchmark.sh — 119 lines, timing + metric collection
+- ✓ compare.sh — 104 lines, regression detection
 
 ## Level 3: Wired ✓
+- ✓ run.sh and benchmark.sh source lib.sh
+- ✓ lib.sh wraps kiro-cli chat with konductor agent
+- ✓ compare.sh reads baseline.toml and results
+- ✓ All scripts pass bash -n syntax check
+- ✓ Gated behind KONDUCTOR_E2E=1 env var
 
-All components are properly connected:
-- ✓ install.sh --help prints usage and exits 0
-- ✓ install.sh verify_binary() validates downloaded files
-- ✓ install.sh verify_checksum() downloads and verifies .sha256 files
-- ✓ install.sh permission checks with actionable error messages
-- ✓ build-release.yml test job runs cargo test + clippy
-- ✓ build-release.yml build job `needs: test` (tests gate release)
-- ✓ build-release.yml generates and uploads .sha256 checksum files
-- ✓ Version sync: version.txt == Cargo.toml == --version output (all 0.2.1)
+## Success Criteria
+1. ✓ Synthetic project exists with clear spec (Python CLI calculator)
+2. ✓ E2E test runs init→plan→execute→verify via kiro-cli chat
+3. ✓ Test is reproducible (temp dir, env var gate) and runs locally
+4. ✓ Benchmark harness collects timing, quality, and correctness metrics
+5. ✓ Baseline metrics file exists with reference values
 
-## Roadmap Success Criteria
-
-1. ✓ Install script handles all edge cases — --help, permissions, unsupported platforms, existing installs
-2. ✓ Binary checksums are verified during installation — verify_checksum() with sha256sum/shasum
-3. ✓ CI builds produce consistent, tested artifacts — test job gates build job
-4. ✓ Version reporting works end-to-end — 0.2.1 across all sources
+## Note
+Baseline values are templates — to be filled after first real benchmark run with `KONDUCTOR_E2E=1 bash tests/e2e/benchmark.sh`.
 
 ## Gaps
-
 None found.

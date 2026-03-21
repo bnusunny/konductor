@@ -1,10 +1,9 @@
-# Plan 002 Summary: Commands, Hooks, and Troubleshooting Docs
+# Plan 002 Summary: CI Workflow
 
 ## Status: Complete
 
 ## Changes
-- Expanded `docs-site/commands.md` — each command has usage example, description; MCP tools table includes config_get; error response format documented
-- Created `docs-site/hooks.md` — hook configuration, file tracking (PostToolUse), destructive command blocking (PreToolUse) with full blocked patterns table, flow diagram
-- Created `docs-site/troubleshooting.md` — 9 common issues with solutions
-- Updated `mkdocs.yml` nav with Hooks and Troubleshooting pages
-- `mkdocs build` succeeds
+- Created `.github/workflows/test.yml` (64 lines) with two jobs:
+  - `test` — runs cargo test + clippy on every PR
+  - `e2e` — conditional on KONDUCTOR_E2E var, builds binary, runs benchmark, uploads results artifact, checks for regressions via compare.sh
+- e2e job depends on test job passing first

@@ -1,9 +1,10 @@
-# Plan 002 Summary: Hook Module Tests
+# Plan 002 Summary: MCP Prompt Tests
 
 ## Status: Complete
 
 ## Changes
-- Added 13 tests covering: HookEvent deserialization (valid PostToolUse, valid PreToolUse, missing optional fields, malformed JSON), file tracking (tracks writes, skips non-write, skips missing cwd, skips missing filePath), destructive command detection (all patterns, safe commands, case insensitivity), PreToolUse edge cases (non-shell skip, missing command)
+- Created `tests/mcp_prompts.rs` with prompt-specific harness
+- 10 integration tests: list_all_prompts (verifies 9 prompts), 7 no-arg prompts (k-init, k-exec, k-verify, k-ship, k-next, k-status, k-map), 2 arg prompts (k-plan with phase, k-discuss with phase)
 
 ## Test Results
-13 tests passing in `hook::tests`
+10 tests passing in `mcp_prompts`

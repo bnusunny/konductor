@@ -1,40 +1,41 @@
 # Roadmap
 
-## Phase 01: Core CLI Hardening
+## Phase 01: MCP Protocol Integration Tests
 
-**Goal:** Harden the konductor-cli binary with comprehensive tests, robust error handling, full frontmatter parsing, and config management.
-
-**Success Criteria:**
-- All state transitions are tested (valid and invalid)
-- MCP tool handlers return structured errors for all failure modes
-- Plan frontmatter parser handles all documented fields
-- Config.toml is read and validated by the CLI
-- `cargo test` passes with no failures
-- `cargo clippy` reports no warnings
-
-**Requirements:** REQ-01, REQ-02, REQ-03, REQ-04, REQ-05, REQ-06
-
-## Phase 02: Install and Distribution
-
-**Goal:** Make the install script bulletproof and improve the release pipeline.
+**Goal:** Build a test harness that validates all MCP tools and prompts by communicating with `konductor mcp` over stdio JSON-RPC.
 
 **Success Criteria:**
-- Install script handles all edge cases (existing installs, permissions, unsupported platforms)
-- Binary checksums are verified during installation
-- CI builds produce consistent, tested artifacts
-- Version reporting works end-to-end
+- Test harness can spawn `konductor mcp`, send JSON-RPC requests, and parse responses
+- All 7 MCP tools are tested (valid inputs, error cases, state mutations)
+- All 9 MCP prompts are tested (correct message content, argument handling)
+- Tests run in CI via `cargo test` or a dedicated test script
+- Tests are isolated (each test starts with fresh .konductor/ state)
 
-**Requirements:** REQ-06, REQ-07, REQ-09
+**Requirements:** REQ-01, REQ-08
 
-## Phase 03: Documentation and Polish
+## Phase 02: E2E Pipeline Tests and Synthetic Project
 
-**Goal:** Complete the documentation site and ensure all features are documented.
+**Goal:** Create a synthetic test project and run the full konductor pipeline against it, validating all artifacts.
 
 **Success Criteria:**
-- All commands documented with examples
-- Configuration reference is complete
-- Architecture docs reflect MCP-based design
-- Troubleshooting guide covers common issues
-- Hook system is documented
+- Synthetic project exists with clear spec (e.g., CLI calculator)
+- E2E test runs init→plan→execute→verify→ship and validates all artifacts
+- Test is reproducible and runs in CI
+- Benchmark harness collects timing, quality, and correctness metrics
+- Baseline metrics are established and stored
 
-**Requirements:** REQ-08, REQ-10
+**Requirements:** REQ-02, REQ-03, REQ-04, REQ-05, REQ-07, REQ-08
+
+## Phase 03: Self-Improvement Loop
+
+**Goal:** Build an autonomous agent that analyzes benchmark results and improves konductor's skills and prompts.
+
+**Success Criteria:**
+- Agent reads benchmark results and identifies underperforming skills
+- Agent generates improved skill/prompt versions
+- Agent re-runs benchmarks to validate improvements
+- Improvement loop is bounded (max 3 iterations)
+- Improvements that regress metrics are automatically reverted
+- CI workflow runs the full test + benchmark + improve cycle
+
+**Requirements:** REQ-06, REQ-07

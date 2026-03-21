@@ -1,30 +1,45 @@
-# Phase 03 Research: Documentation and Polish
+# Phase 03 Research: Self-Improvement Loop
 
-## Current State
+## How the Loop Works
 
-### Existing docs-site pages (10 pages, ~450 lines total):
-- index.md (42 lines) — landing page, good
-- getting-started/installation.md (61 lines) — covers clone + install.sh, one-liner
-- getting-started/quickstart.md (70 lines) — basic usage flow
-- pipeline/overview.md (31 lines) — pipeline diagram
-- pipeline/initialize.md (26 lines) — brief
-- pipeline/plan.md (35 lines) — brief
-- pipeline/execute.md (29 lines) — brief
-- pipeline/verify.md (29 lines) — brief
-- pipeline/ship.md (16 lines) — very brief
-- architecture/how-it-works.md (82 lines) — good overview
-- commands.md (29 lines) — table of commands + MCP tools
+1. Run benchmark → get results.toml
+2. Analyze results → identify worst-performing step (slowest, most gaps, verification failures)
+3. Read the skill file for that step → identify what could be improved
+4. Generate an improved version of the skill → write to a staging area
+5. Re-run benchmark with the improved skill → get new results.toml
+6. Compare → if improved, keep; if regressed, revert
+7. Repeat up to max iterations
 
-### Gaps vs. Success Criteria
+## Architecture
 
-1. **"All commands documented with examples"** — commands.md has a table but no examples, no argument docs, no output samples
-2. **"Configuration reference is complete"** — No config reference page at all. config.toml fields undocumented.
-3. **"Architecture docs reflect MCP-based design"** — how-it-works.md is decent but missing: state machine diagram, plan file format, MCP tool schemas
-4. **"Troubleshooting guide covers common issues"** — No troubleshooting page exists
-5. **"Hook system is documented"** — how-it-works.md mentions hooks briefly but no dedicated page with destructive command list, tracking behavior, or configuration
+The improvement loop is a bash script that:
+- Drives `kiro-cli chat` to analyze benchmark results and suggest improvements
+- Uses git to manage skill versions (branch per iteration, revert on regression)
+- Calls the existing benchmark.sh and compare.sh scripts
 
-### Missing from mkdocs.yml nav:
-- Configuration reference page
-- Troubleshooting page
-- Hooks page
-- State machine reference
+### Key Design Decisions
+
+**Script-based, not Rust:** The improvement loop is orchestration logic — bash scripts calling kiro-cli. No need for compiled code.
+
+**Git-based versioning:** Each improvement iteration creates a git stash or branch. Revert is just `git checkout -- skills/`. Simple and reliable.
+
+**Bounded:** Max 3 iterations hardcoded. Each iteration has a timeout.
+
+**Local-first:** Runs locally like the E2E tests. CI workflow is a thin wrapper.
+
+## Improvement Strategy
+
+The agent analyzes benchmark results and focuses on:
+- **Slow steps:** If plan_time or exec_time is high, improve the corresponding skill's instructions to be more concise/focused
+- **High gap count:** If verification finds gaps, improve the exec skill to be more thorough
+- **Verification failures:** If verification status is issues-found, improve the verify skill's criteria
+
+The agent reads the current SKILL.md, the benchmark results, and generates a revised version with specific changes.
+
+## CI Workflow
+
+A GitHub Actions workflow that:
+1. Runs `cargo test` (unit + MCP integration)
+2. If KONDUCTOR_E2E secret is set, runs E2E + benchmark
+3. Uploads benchmark results as artifact
+4. Optionally runs improvement loop (gated behind separate flag)

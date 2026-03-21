@@ -1,39 +1,43 @@
-# Konductor
-
-Spec-driven development orchestrator for Kiro CLI. Orchestrates project planning, execution, verification, and shipping through a structured six-phase pipeline.
+# Konductor Integration Testing & Self-Improvement
 
 ## Vision
 
-Transform high-level project requirements into working software through a systematic pipeline: Initialize → Research → Plan → Execute → Verify → Ship. Each phase outputs artifacts to `.konductor/` that guide the next phase, preventing context rot and ensuring consistency.
+Build a comprehensive integration test environment that validates konductor end-to-end with Kiro CLI, then use benchmark results to autonomously improve konductor's prompts, skills, and pipeline quality.
 
 ## Target Users
 
-- Developers using Kiro CLI who want structured, repeatable development workflows
-- Teams that need autonomous agent-driven development with guardrails
+- Konductor maintainers who need confidence that changes don't break the pipeline
+- CI systems that gate releases on integration test results
+- The konductor agent itself, using benchmark data to self-improve
 
 ## Tech Stack
 
-- **Language:** Rust (konductor-cli binary)
-- **MCP Framework:** rmcp (Model Context Protocol server)
-- **Agent System:** Kiro CLI agents and skills (JSON configs + markdown skill definitions)
-- **State Management:** TOML-based state machine (.konductor/state.toml)
-- **Documentation:** MkDocs Material (docs-site)
-- **CI/CD:** GitHub Actions (release-please, cross-platform builds, conventional commits)
-- **Distribution:** GitHub Releases (Linux x86_64/arm64, macOS x86_64/arm64) + install script
+- **Language:** Rust (konductor-cli), Bash (test harness scripts)
+- **MCP Testing:** Direct JSON-RPC over stdio to `konductor mcp`
+- **E2E Testing:** Scripted Kiro CLI invocations with artifact validation
+- **Benchmarking:** TOML-based metrics collection, comparison against baselines
+- **CI:** GitHub Actions workflows
+- **Test Projects:** Konductor itself (dogfood) + synthetic toy project
 
 ## Key Components
 
-1. **konductor-cli** — Unified Rust binary with MCP server and hook processor
-2. **Agents** — JSON configs for orchestrator + 7 worker agents (discoverer, researcher, planner, plan-checker, executor, verifier, codebase-mapper)
-3. **Skills** — Markdown skill definitions for each pipeline phase (init, plan, exec, verify, ship, next, status, discuss, map-codebase)
-4. **Hooks** — Pre/post tool-use hooks for file tracking and destructive command blocking
-5. **Install script** — Shell installer for global/local deployment
-6. **Docs site** — MkDocs Material documentation hosted on GitHub Pages
+1. **MCP Protocol Tests** — Send JSON-RPC requests to `konductor mcp`, validate tool responses (state_get, state_transition, plans_list, etc.), prompt schemas, and error handling
+2. **E2E Pipeline Tests** — Run full init→plan→exec→verify→ship pipeline on a synthetic project, validate all artifacts are created correctly
+3. **Benchmark Harness** — Measure pipeline speed (per-phase timing), quality (test pass rate, verification pass rate, gap count), and correctness (does generated code compile and pass tests)
+4. **Self-Improvement Agent** — Analyze benchmark results, identify underperforming skills/prompts, generate improved versions, re-run benchmarks to validate improvements
+5. **CI Integration** — GitHub Actions workflow that runs integration tests and benchmarks on PRs
 
-## Current State (v0.2.1)
+## Scope
 
-- Core MCP server with state management tools (state_get, state_transition, state_add_blocker, state_resolve_blocker, plans_list, status)
-- MCP prompts for all pipeline commands (k-init, k-plan, k-exec, k-verify, k-ship, k-next, k-status, k-discuss, k-map)
-- Hook system for file tracking and destructive command blocking
-- Cross-platform release pipeline
-- Documentation site
+- Integration tests for all MCP tools and prompts
+- E2E tests for the full pipeline on a synthetic project
+- Benchmark harness with speed, quality, and correctness metrics
+- Autonomous skill/prompt improvement loop
+- CI workflow for automated testing
+
+## Out of Scope
+
+- Token/cost efficiency metrics (requires API billing integration)
+- UI dashboard for benchmark results
+- Multi-model comparison (single model benchmarking only)
+- Load testing / concurrent pipeline execution
