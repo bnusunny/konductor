@@ -4,8 +4,8 @@ initialized = "2026-03-21T18:15:23Z"
 
 [current]
 phase = "03"
-step = "shipped"
-status = "complete"
+step = "complete"
+status = "idle"
 plan = ""
 wave = 1
 
@@ -16,9 +16,5 @@ current_phase_plans = 2
 current_phase_plans_complete = 2
 
 [metrics]
-last_activity = "2026-03-21T18:51:24Z"
+last_activity = "2026-03-21T18:43:44Z"
 total_agent_sessions = 6
-
-[release]
-version = "v0.3.0"
-shipped = "2026-03-21T18:51:24Z"
