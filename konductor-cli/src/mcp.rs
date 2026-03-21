@@ -17,6 +17,15 @@ use std::fs;
 use std::path::Path;
 
 use crate::state;
+use crate::config;
+
+fn tool_error(code: &str, message: &str) -> String {
+    serde_json::json!({
+        "error": true,
+        "code": code,
+        "message": message,
+    }).to_string()
+}
 
 // -- Prompt argument types --
 
@@ -148,32 +157,32 @@ impl KonductorMcp {
     #[tool(description = "Get current pipeline state from .konductor/state.toml")]
     async fn state_get(&self) -> String {
         match state::read_state() {
-            Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| format!("Error: {e}")),
-            Err(e) => e,
+            Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string())),
+            Err(e) => tool_error("STATE_NOT_FOUND", &e),
         }
     }
 
     #[tool(description = "Transition pipeline to a new step. Validates the transition is allowed.")]
     async fn state_transition(&self, Parameters(args): Parameters<TransitionArgs>) -> String {
         match state::transition(&args.step, args.phase.as_deref()) {
-            Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| format!("Error: {e}")),
-            Err(e) => format!("Error: {e}"),
+            Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string())),
+            Err(e) => tool_error("INVALID_TRANSITION", &e),
         }
     }
 
     #[tool(description = "Add a blocker to the current phase")]
     async fn state_add_blocker(&self, Parameters(args): Parameters<BlockerArgs>) -> String {
         match state::add_blocker(&args.phase, &args.reason) {
-            Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| format!("Error: {e}")),
-            Err(e) => format!("Error: {e}"),
+            Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string())),
+            Err(e) => tool_error("STATE_NOT_FOUND", &e),
         }
     }
 
     #[tool(description = "Resolve a blocker for a phase")]
     async fn state_resolve_blocker(&self, Parameters(args): Parameters<ResolveBlockerArgs>) -> String {
         match state::resolve_blocker(&args.phase) {
-            Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| format!("Error: {e}")),
-            Err(e) => format!("Error: {e}"),
+            Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string())),
+            Err(e) => tool_error("STATE_NOT_FOUND", &e),
         }
     }
 
@@ -183,20 +192,20 @@ impl KonductorMcp {
             Some(p) => p,
             None => match state::read_state() {
                 Ok(s) => s.current.and_then(|c| c.phase).unwrap_or_default(),
-                Err(e) => return format!("Error: {e}"),
+                Err(e) => return tool_error("STATE_NOT_FOUND", &e),
             },
         };
 
         let plans_dir = format!(".konductor/phases/{phase}/plans");
         let dir = Path::new(&plans_dir);
         if !dir.exists() {
-            return format!("No plans directory found at {plans_dir}");
+            return tool_error("NO_PLANS", &format!("No plans directory found at {plans_dir}"));
         }
 
         let mut plans: Vec<serde_json::Value> = Vec::new();
         let entries = match fs::read_dir(dir) {
             Ok(e) => e,
-            Err(e) => return format!("Error reading plans: {e}"),
+            Err(e) => return tool_error("IO_ERROR", &format!("Error reading plans: {e}")),
         };
 
         for entry in entries.flatten() {
@@ -212,7 +221,7 @@ impl KonductorMcp {
             }
 
             let content = fs::read_to_string(&path).unwrap_or_default();
-            let (wave, title) = parse_plan_frontmatter(&content);
+            let fm = parse_plan_frontmatter(&content);
 
             // Check if summary exists
             let plan_num = name.trim_end_matches(".md");
@@ -221,8 +230,12 @@ impl KonductorMcp {
 
             plans.push(serde_json::json!({
                 "file": name,
-                "wave": wave,
-                "title": title,
+                "plan": fm.plan,
+                "wave": fm.wave,
+                "title": fm.title,
+                "type": fm.plan_type,
+                "depends_on": fm.depends_on,
+                "requirements": fm.requirements,
                 "complete": complete,
             }));
         }
@@ -233,14 +246,14 @@ impl KonductorMcp {
             "plans": plans,
             "total": plans.len(),
         }))
-        .unwrap_or_else(|e| format!("Error: {e}"))
+        .unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string()))
     }
 
     #[tool(description = "Get a structured status report of the entire project")]
     async fn status(&self) -> String {
         let state = match state::read_state() {
             Ok(s) => s,
-            Err(e) => return e,
+            Err(e) => return tool_error("STATE_NOT_FOUND", &e),
         };
 
         let current = state.current.as_ref();
@@ -265,6 +278,8 @@ impl KonductorMcp {
             _ => "Say 'status' to check project state.",
         };
 
+        let config_summary = config::read_config().ok();
+
         serde_json::to_string_pretty(&serde_json::json!({
             "project": state.project.as_ref().and_then(|p| p.name.as_deref()),
             "current_phase": current.and_then(|c| c.phase.as_deref()),
@@ -278,39 +293,78 @@ impl KonductorMcp {
             "blockers": active_blockers,
             "last_activity": state.metrics.as_ref().and_then(|m| m.last_activity.as_deref()),
             "total_agent_sessions": state.metrics.as_ref().and_then(|m| m.total_agent_sessions),
+            "config": config_summary,
             "next_suggestion": next_suggestion,
         }))
-        .unwrap_or_else(|e| format!("Error: {e}"))
+        .unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string()))
+    }
+
+    #[tool(description = "Get current configuration from .konductor/config.toml")]
+    async fn config_get(&self) -> String {
+        match config::read_config() {
+            Ok(c) => serde_json::to_string_pretty(&c).unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string())),
+            Err(e) => tool_error("INVALID_CONFIG", &e),
+        }
     }
 }
 
-fn parse_plan_frontmatter(content: &str) -> (i64, String) {
-    let mut wave = 0i64;
-    let mut title = String::new();
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
+pub struct MustHaves {
+    #[serde(default)]
+    pub truths: Vec<String>,
+    #[serde(default)]
+    pub artifacts: Vec<String>,
+    #[serde(default)]
+    pub key_links: Vec<String>,
+}
 
-    let mut in_frontmatter = false;
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
+pub struct PlanFrontmatter {
+    #[serde(default)]
+    pub phase: String,
+    #[serde(default)]
+    pub plan: i64,
+    #[serde(default)]
+    pub wave: i64,
+    #[serde(default)]
+    pub title: String,
+    #[serde(default)]
+    pub depends_on: Vec<i64>,
+    #[serde(default, rename = "type")]
+    pub plan_type: String,
+    #[serde(default)]
+    pub autonomous: bool,
+    #[serde(default)]
+    pub requirements: Vec<String>,
+    #[serde(default)]
+    pub files_modified: Vec<String>,
+    #[serde(default)]
+    pub must_haves: Option<MustHaves>,
+}
+
+fn parse_plan_frontmatter(content: &str) -> PlanFrontmatter {
+    let mut frontmatter = String::new();
+    let mut found_start = false;
+
     for line in content.lines() {
-        let trimmed = line.trim();
-        if trimmed == "+++" {
-            if in_frontmatter {
+        if line.trim() == "+++" {
+            if found_start {
                 break;
             }
-            in_frontmatter = true;
+            found_start = true;
             continue;
         }
-        if in_frontmatter {
-            if let Some(val) = trimmed.strip_prefix("wave") {
-                if let Some(val) = val.trim().strip_prefix('=') {
-                    wave = val.trim().parse().unwrap_or(0);
-                }
-            } else if let Some(val) = trimmed.strip_prefix("title") {
-                if let Some(val) = val.trim().strip_prefix('=') {
-                    title = val.trim().trim_matches('"').to_string();
-                }
-            }
+        if found_start {
+            frontmatter.push_str(line);
+            frontmatter.push('\n');
         }
     }
-    (wave, title)
+
+    if frontmatter.is_empty() {
+        return PlanFrontmatter::default();
+    }
+
+    toml::from_str(&frontmatter).unwrap_or_default()
 }
 
 // -- ServerHandler wiring --
@@ -341,6 +395,98 @@ impl ServerHandler for KonductorMcp {
 pub async fn run() {
     let server = KonductorMcp::new();
     let transport = stdio();
-    let service = server.serve(transport).await.expect("Failed to start MCP server");
-    service.waiting().await.expect("MCP server error");
+    let service = match server.serve(transport).await {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("konductor: MCP server failed to initialize: {e}");
+            return;
+        }
+    };
+    if let Err(e) = service.waiting().await {
+        eprintln!("konductor: MCP server stopped: {e}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_complete_frontmatter() {
+        let content = r#"+++
+phase = "01"
+plan = 1
+wave = 2
+title = "User Model"
+depends_on = [1, 2]
+type = "tdd"
+autonomous = true
+requirements = ["REQ-01", "REQ-02"]
+files_modified = ["src/models/user.rs"]
+
+[must_haves]
+truths = ["Users can register"]
+artifacts = ["src/models/user.rs"]
+key_links = ["User imported by auth"]
++++
+
+# Plan body here
+"#;
+        let fm = parse_plan_frontmatter(content);
+        assert_eq!(fm.phase, "01");
+        assert_eq!(fm.plan, 1);
+        assert_eq!(fm.wave, 2);
+        assert_eq!(fm.title, "User Model");
+        assert_eq!(fm.depends_on, vec![1, 2]);
+        assert_eq!(fm.plan_type, "tdd");
+        assert!(fm.autonomous);
+        assert_eq!(fm.requirements, vec!["REQ-01", "REQ-02"]);
+        assert_eq!(fm.files_modified, vec!["src/models/user.rs"]);
+        let mh = fm.must_haves.unwrap();
+        assert_eq!(mh.truths, vec!["Users can register"]);
+        assert_eq!(mh.artifacts, vec!["src/models/user.rs"]);
+        assert_eq!(mh.key_links, vec!["User imported by auth"]);
+    }
+
+    #[test]
+    fn test_parse_minimal_frontmatter() {
+        let content = "+++\nwave = 1\n+++\n# Body\n";
+        let fm = parse_plan_frontmatter(content);
+        assert_eq!(fm.wave, 1);
+        assert_eq!(fm.phase, "");
+        assert_eq!(fm.plan, 0);
+        assert!(fm.depends_on.is_empty());
+        assert!(fm.must_haves.is_none());
+    }
+
+    #[test]
+    fn test_parse_no_frontmatter() {
+        let content = "# Just a markdown file\nNo frontmatter here.";
+        let fm = parse_plan_frontmatter(content);
+        assert_eq!(fm.wave, 0);
+        assert_eq!(fm.title, "");
+    }
+
+    #[test]
+    fn test_parse_empty_content() {
+        let fm = parse_plan_frontmatter("");
+        assert_eq!(fm, PlanFrontmatter::default());
+    }
+
+    #[test]
+    fn test_parse_frontmatter_with_empty_depends() {
+        let content = "+++\nwave = 1\ndepends_on = []\n+++\n";
+        let fm = parse_plan_frontmatter(content);
+        assert!(fm.depends_on.is_empty());
+    }
+
+    #[test]
+    fn test_parse_frontmatter_must_haves_partial() {
+        let content = "+++\nwave = 1\n\n[must_haves]\ntruths = [\"a\"]\n+++\n";
+        let fm = parse_plan_frontmatter(content);
+        let mh = fm.must_haves.unwrap();
+        assert_eq!(mh.truths, vec!["a"]);
+        assert!(mh.artifacts.is_empty());
+        assert!(mh.key_links.is_empty());
+    }
 }
