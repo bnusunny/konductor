@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.0](https://github.com/bnusunny/konductor/compare/v0.1.0...v0.2.0) (2026-03-21)
+
+
+### Features
+
+* add unified konductor binary with MCP server and hook subcommands ([7f11640](https://github.com/bnusunny/konductor/commit/7f116405e231cf00227d58aba5619593f256b1bb))
+* read release-as version from version.txt ([c133580](https://github.com/bnusunny/konductor/commit/c133580d0e21022766f14d1e51d20e617dbf2f40))
+* read release-as version from version.txt ([b1b81e7](https://github.com/bnusunny/konductor/commit/b1b81e76ebbe18b6a13aa100ec4f99a6bdec5046))
+* unified konductor binary with MCP server and hook subcommands ([1de12ef](https://github.com/bnusunny/konductor/commit/1de12ef5847d82a027bfa4fe1e87d664fbe67959))
+
 ## [0.1.0](https://github.com/bnusunny/konductor/compare/v0.1.0...v0.1.0) (2026-03-20)
 
 
