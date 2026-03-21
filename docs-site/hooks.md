@@ -12,13 +12,13 @@ Hooks are configured in `.kiro/hooks/konductor-hooks.json`:
     {
       "event": "PostToolUse",
       "matcher": "write",
-      "command": "~/.kiro/bin/konductor hook",
+      "command": "konductor hook",
       "timeout_ms": 2000
     },
     {
       "event": "PreToolUse",
       "matcher": "shell",
-      "command": "~/.kiro/bin/konductor hook",
+      "command": "konductor hook",
       "timeout_ms": 1000
     }
   ]

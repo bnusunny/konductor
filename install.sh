@@ -135,18 +135,11 @@ fi
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Copy agents (patch binary path for local installs)
+# Copy agents
 if [[ -d "$SCRIPT_DIR/agents" ]]; then
   echo "Installing agents..."
   for f in "$SCRIPT_DIR/agents"/*.json; do
-    DST="$TARGET_DIR/agents/$(basename "$f")"
-    if [[ -e "$DST" && "$FORCE" != true ]]; then
-      echo "  ⏭ Skipping $(basename "$DST") (already exists, use --force to overwrite)"
-    elif [[ "$SCOPE" == "local" ]]; then
-      sed 's|~/.kiro/bin/konductor|.kiro/bin/konductor|g' "$f" > "$DST"
-    else
-      cp "$f" "$DST"
-    fi
+    safe_cp "$f" "$TARGET_DIR/agents/$(basename "$f")"
   done
 fi
 
@@ -165,21 +158,10 @@ if [[ -d "$SCRIPT_DIR/skills" ]]; then
   done
 fi
 
-# Install hooks with correct binary path for install scope
+# Copy hooks
 if [[ -f "$SCRIPT_DIR/hooks/konductor-hooks.json" ]]; then
   echo "Installing hooks..."
-  HOOKS_DST="$TARGET_DIR/hooks/konductor-hooks.json"
-  if [[ -e "$HOOKS_DST" && "$FORCE" != true ]]; then
-    echo "  ⏭ Skipping konductor-hooks.json (already exists, use --force to overwrite)"
-  else
-    if [[ "$SCOPE" == "local" ]]; then
-      HOOK_CMD=".kiro/bin/konductor hook"
-    else
-      HOOK_CMD="~/.kiro/bin/konductor hook"
-    fi
-    sed "s|~/.kiro/bin/konductor hook|$HOOK_CMD|g" \
-      "$SCRIPT_DIR/hooks/konductor-hooks.json" > "$HOOKS_DST"
-  fi
+  safe_cp "$SCRIPT_DIR/hooks/konductor-hooks.json" "$TARGET_DIR/hooks/konductor-hooks.json"
 fi
 
 # Install konductor binary (unified: mcp server + hook processor)
@@ -237,6 +219,40 @@ fi
 
 echo ""
 echo "✓ Konductor installed successfully!"
+
+# Ensure konductor binary is on PATH
+BIN_DIR="$TARGET_DIR/bin"
+if ! command -v konductor >/dev/null 2>&1; then
+  # Add to PATH for current session
+  export PATH="$BIN_DIR:$PATH"
+
+  if [[ "$SCOPE" == "global" ]]; then
+    # Add to shell profile for future sessions
+    SHELL_NAME=$(basename "${SHELL:-/bin/bash}")
+    case "$SHELL_NAME" in
+      zsh)  PROFILE="$HOME/.zshrc" ;;
+      fish) PROFILE="$HOME/.config/fish/config.fish" ;;
+      *)    PROFILE="$HOME/.bashrc" ;;
+    esac
+
+    PATH_LINE="export PATH=\"$BIN_DIR:\$PATH\""
+    if [[ -f "$PROFILE" ]] && grep -qF "$BIN_DIR" "$PROFILE" 2>/dev/null; then
+      : # Already in profile
+    elif [[ -f "$PROFILE" ]]; then
+      echo "" >> "$PROFILE"
+      echo "# Konductor" >> "$PROFILE"
+      echo "$PATH_LINE" >> "$PROFILE"
+      echo "  Added $BIN_DIR to PATH in $PROFILE"
+      echo "  Run: source $PROFILE (or restart your shell)"
+    else
+      echo "  ⚠ Add $BIN_DIR to your PATH manually:"
+      echo "    $PATH_LINE"
+    fi
+  else
+    echo "  ⚠ Local install: add .kiro/bin to PATH in your project, e.g.:"
+    echo "    export PATH=\".kiro/bin:\$PATH\""
+  fi
+fi
 echo ""
 echo "Usage:"
 echo "  kiro-cli --agent konductor"
