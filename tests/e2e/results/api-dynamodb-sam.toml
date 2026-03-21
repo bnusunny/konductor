@@ -1,0 +1,10 @@
+# Benchmark results for api-dynamodb-sam
+# Generated: 2026-03-21T23:56:13+0000
+
+[project]
+name = "api-dynamodb-sam"
+timestamp = "2026-03-21T23:56:13+0000"
+
+[timing]
+init_s = 119
+plan_s = 82

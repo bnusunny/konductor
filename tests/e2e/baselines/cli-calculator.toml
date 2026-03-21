@@ -1,0 +1,18 @@
+# Baseline: CLI Calculator
+# Conservative initial values — tighten after first benchmark run
+
+[timing]
+init_s = 120
+plan_s = 120
+exec_s = 300
+verify_s = 120
+
+[artifacts]
+plan_count_min = 1
+python_files_min = 1
+test_files_min = 1
+
+[quality]
+lint_pass = true
+tests_pass = true
+tests_total_min = 6

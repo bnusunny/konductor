@@ -1,0 +1,26 @@
+# Baseline: API + DynamoDB with SAM
+# Conservative initial values — tighten after first benchmark run
+
+[timing]
+init_s = 120
+plan_s = 180
+exec_s = 420
+verify_s = 120
+
+[artifacts]
+plan_count_min = 1
+python_files_min = 1
+test_files_min = 1
+sam_template = true
+
+[quality]
+lint_pass = true
+tests_pass = true
+tests_total_min = 10
+sam_valid = true
+
+[deployment]
+deploy_success = true
+verify_success = true
+teardown_success = true
+deploy_time_s = 300

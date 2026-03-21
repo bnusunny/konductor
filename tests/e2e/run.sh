@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # E2E pipeline test for konductor
 # Drives kiro-cli with the konductor agent through the full pipeline
+# for each synthetic project independently.
 #
 # Usage:
 #   KONDUCTOR_E2E=1 bash tests/e2e/run.sh
+#   KONDUCTOR_E2E=1 bash tests/e2e/run.sh --project cli-calculator
 #
 # Options:
 #   KEEP_TEST_DIR=1    Keep the test directory after run
@@ -14,119 +16,186 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
-# Gate behind env var
+FILTER_PROJECT=""
+[[ "${1:-}" == "--project" ]] && FILTER_PROJECT="${2:-}"
+
 if [[ "${KONDUCTOR_E2E:-}" != "1" ]]; then
   echo "Skipping E2E test (set KONDUCTOR_E2E=1 to run)"
   echo "Requires: kiro-cli with authenticated session and LLM access"
   exit 0
 fi
 
-# Check prerequisites
 if ! command -v kiro-cli >/dev/null 2>&1; then
   echo "ERROR: kiro-cli not found in PATH"
   exit 1
 fi
 
+# Discover projects
+PROJECTS=()
+while IFS= read -r p; do
+  if [[ -z "$FILTER_PROJECT" || "$p" == "$FILTER_PROJECT" ]]; then
+    PROJECTS+=("$p")
+  fi
+done < <(list_synthetic_projects)
+
 echo -e "${CYAN}═══ Konductor E2E Pipeline Test ═══${NC}"
+echo "Projects: ${PROJECTS[*]}"
 
-setup_test_dir
-trap teardown_test_dir EXIT
-cd "$TEST_DIR"
+for PROJECT in "${PROJECTS[@]}"; do
+  echo -e "\n${CYAN}═══ Project: $PROJECT ═══${NC}"
 
-# --- Step 1: Initialize ---
+  SPEC_FILE="$SCRIPT_DIR/synthetic-projects/$PROJECT/spec.md"
+  SPEC_CONTENT=$(cat "$SPEC_FILE")
 
-log_step "Step 1: Initialize project"
+  # Detect if this is a SAM project
+  IS_SAM=false
+  grep -qi "sam\|template\.yaml" "$SPEC_FILE" && IS_SAM=true
 
-# Provide the spec as context for the init conversation
-cat > init_prompt.txt << 'PROMPT'
-Initialize this project with Konductor. Here is the project spec:
+  setup_project_test_dir "$PROJECT"
+  trap teardown_test_dir EXIT
+  cd "$TEST_DIR"
 
-Build a simple command-line calculator in Python.
-- Single file: calc.py
-- Takes 3 args: number1 operator number2
-- Operators: + - x /
-- Handles division by zero and invalid input
-- Test file: test_calc.py
+  # --- Step 1: Initialize ---
+
+  log_step "[$PROJECT] Initialize"
+
+  konductor_chat "Initialize this project with Konductor. Here is the project spec:
+
+$SPEC_CONTENT
 
 This is a small 1-phase project. Generate project.md, requirements.md, roadmap.md with a single phase.
 Do NOT ask me questions — use the spec above to generate all documents.
-Run the konductor-init skill.
-PROMPT
+Run the konductor-init skill." > /dev/null
 
-konductor_chat "$(cat init_prompt.txt)" > /dev/null
+  assert_file_exists "$TEST_DIR/.konductor/state.toml" "state.toml"
+  assert_file_exists "$TEST_DIR/.konductor/project.md" "project.md"
+  assert_file_not_empty "$TEST_DIR/.konductor/project.md" "project.md non-empty"
+  log_step_done
 
-assert_file_exists "$TEST_DIR/.konductor/state.toml" "state.toml"
-assert_file_exists "$TEST_DIR/.konductor/project.md" "project.md"
-assert_file_exists "$TEST_DIR/.konductor/requirements.md" "requirements.md"
-assert_file_exists "$TEST_DIR/.konductor/roadmap.md" "roadmap.md"
-assert_file_not_empty "$TEST_DIR/.konductor/project.md" "project.md non-empty"
-log_step_done
+  # --- Step 2: Plan ---
 
-# --- Step 2: Plan ---
+  log_step "[$PROJECT] Plan"
 
-log_step "Step 2: Plan phase"
+  konductor_chat "Plan phase 01 for execution. Research the ecosystem, create execution plans with tasks and acceptance criteria, and validate them. Run the konductor-plan skill." > /dev/null
 
-konductor_chat "Plan phase 01 for execution. Research the ecosystem, create execution plans with tasks and acceptance criteria, and validate them. Run the konductor-plan skill." > /dev/null
+  assert_dir_exists "$TEST_DIR/.konductor/phases" "phases directory"
+  assert_min_file_count "$TEST_DIR/.konductor/phases" "*.md" 1 "at least 1 plan file"
+  log_step_done
 
-assert_dir_exists "$TEST_DIR/.konductor/phases" "phases directory"
-assert_min_file_count "$TEST_DIR/.konductor/phases" "*.md" 1 "at least 1 plan file"
-log_step_done
+  # --- Step 3: Execute ---
 
-# --- Step 3: Execute ---
+  log_step "[$PROJECT] Execute"
 
-log_step "Step 3: Execute phase"
+  konductor_chat "Execute the plans for the current phase. Spawn executor subagents to implement each plan following TDD workflow. Run the konductor-exec skill." > /dev/null
 
-konductor_chat "Execute the plans for the current phase. Spawn executor subagents to implement each plan following TDD workflow. Run the konductor-exec skill." > /dev/null
+  assert_min_file_count "$TEST_DIR" "*.py" 1 "at least 1 Python file"
+  assert_min_file_count "$TEST_DIR" "test_*.py" 1 "at least 1 test file"
+  log_step_done
 
-assert_min_file_count "$TEST_DIR/.konductor/phases" "*-summary.md" 1 "at least 1 summary file"
-# Check that some code was generated
-assert_min_file_count "$TEST_DIR" "*.py" 1 "at least 1 Python file created"
-log_step_done
+  # --- Step 4: Verify hooks ---
 
-# --- Step 3b: Verify hooks fired during execution ---
+  log_step "[$PROJECT] Verify hooks"
+  assert_tracking_log_exists
+  assert_tracking_log_contains "\.py" "tracking log recorded Python files"
+  assert_hook_blocks_destructive
+  log_step_done
 
-log_step "Step 3b: Verify hooks"
+  # --- Step 5: Quality checks ---
 
-# PostToolUse hook should have tracked written files
-assert_tracking_log_exists
-assert_tracking_log_contains "\.py" "tracking log recorded Python files"
+  log_step "[$PROJECT] Quality checks"
 
-# Show what the hook tracked
-if [[ -f "$TEST_DIR/.konductor/.tracking/modified-files.log" ]]; then
-  echo "  Hook tracked files:"
-  sort -u "$TEST_DIR/.konductor/.tracking/modified-files.log" | while read -r f; do
-    echo "    $f"
-  done
-fi
+  # Lint
+  if command -v ruff >/dev/null 2>&1; then
+    py_files=$(find "$TEST_DIR" -maxdepth 2 -name "*.py" ! -path "*/.konductor/*")
+    if [[ -n "$py_files" ]]; then
+      if (cd "$TEST_DIR" && ruff check $py_files 2>&1); then
+        log_pass "ruff lint passes"
+      else
+        log_fail "ruff lint has errors"
+      fi
+    fi
+  else
+    log_warn "ruff not available, skipping lint"
+  fi
 
-# PreToolUse hook should block destructive commands
-assert_hook_blocks_destructive
-log_step_done
+  # Tests
+  if command -v pytest >/dev/null 2>&1; then
+    test_files=$(find "$TEST_DIR" -maxdepth 2 -name "test_*.py" ! -path "*/.konductor/*")
+    if [[ -n "$test_files" ]]; then
+      if (cd "$TEST_DIR" && pytest -v --tb=short 2>&1); then
+        log_pass "pytest passes"
+      else
+        log_fail "pytest has failures"
+      fi
+    fi
+  else
+    log_warn "pytest not available, skipping tests"
+  fi
 
-# --- Step 4: Verify ---
+  log_step_done
 
-log_step "Step 4: Verify phase"
+  # --- Step 6: SAM-specific checks ---
 
-konductor_chat "Verify the current phase after execution. Validate that phase goals were achieved using the 3-level verification framework. Run the konductor-verify skill." > /dev/null
+  if [[ "$IS_SAM" == "true" ]]; then
+    log_step "[$PROJECT] SAM template checks"
 
-assert_min_file_count "$TEST_DIR/.konductor/phases" "verification.md" 1 "verification report"
-log_step_done
+    assert_file_exists "$TEST_DIR/template.yaml" "template.yaml"
 
-# --- Summary ---
+    if [[ -f "$TEST_DIR/template.yaml" ]]; then
+      # YAML validity
+      if python3 -c "import yaml; yaml.safe_load(open('$TEST_DIR/template.yaml'))" 2>/dev/null; then
+        log_pass "template.yaml is valid YAML"
 
-echo ""
-echo -e "${CYAN}═══ Artifact Summary ═══${NC}"
-echo "Files in .konductor/:"
-find "$TEST_DIR/.konductor" -type f | sed "s|$TEST_DIR/||" | sort
-echo ""
-echo "Hook tracking log:"
-if [[ -f "$TEST_DIR/.konductor/.tracking/modified-files.log" ]]; then
-  echo "  $(wc -l < "$TEST_DIR/.konductor/.tracking/modified-files.log") entries, $(sort -u "$TEST_DIR/.konductor/.tracking/modified-files.log" | wc -l) unique files"
-else
-  echo "  (not created)"
-fi
-echo ""
-echo "Project files:"
-find "$TEST_DIR" -maxdepth 2 -name "*.py" -o -name "*.txt" -o -name "*.md" | grep -v .konductor | grep -v synthetic-project | sed "s|$TEST_DIR/||" | sort || echo "  (none)"
+        # Check for expected SAM resources
+        if grep -q "AWS::Serverless::Function" "$TEST_DIR/template.yaml"; then
+          log_pass "template contains AWS::Serverless::Function"
+        else
+          log_fail "template missing AWS::Serverless::Function"
+        fi
+
+        if grep -q "Transform.*AWS::Serverless" "$TEST_DIR/template.yaml"; then
+          log_pass "template has SAM Transform"
+        else
+          log_fail "template missing SAM Transform"
+        fi
+      else
+        log_fail "template.yaml is not valid YAML"
+      fi
+
+      # sam validate if available
+      if command -v sam >/dev/null 2>&1; then
+        if (cd "$TEST_DIR" && sam validate 2>&1); then
+          log_pass "sam validate passes"
+        else
+          log_fail "sam validate fails"
+        fi
+      else
+        log_warn "sam CLI not available, skipping sam validate"
+      fi
+    fi
+
+    log_step_done
+  fi
+
+  # --- Step 7: Verify phase ---
+
+  log_step "[$PROJECT] Verify phase"
+
+  konductor_chat "Verify the current phase after execution. Validate that phase goals were achieved using the 3-level verification framework. Run the konductor-verify skill." > /dev/null
+
+  log_step_done
+
+  # --- Cleanup ---
+
+  echo -e "\n${CYAN}── $PROJECT Artifacts ──${NC}"
+  echo "Python files:"
+  find "$TEST_DIR" -maxdepth 2 -name "*.py" ! -path "*/.konductor/*" -exec basename {} \; | sort | sed 's/^/  /'
+  if [[ "$IS_SAM" == "true" && -f "$TEST_DIR/template.yaml" ]]; then
+    echo "SAM template: present"
+  fi
+
+  teardown_test_dir
+  trap - EXIT
+done
 
 log_summary

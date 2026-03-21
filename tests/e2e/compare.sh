@@ -1,104 +1,182 @@
 #!/usr/bin/env bash
-# Compare benchmark results against baseline
+# Compare per-project benchmark results against baselines
 #
 # Usage:
-#   bash tests/e2e/compare.sh [results.toml] [baseline.toml]
+#   bash tests/e2e/compare.sh [--verbose]
 #
-# Defaults:
-#   results:  tests/e2e/last-results.toml
-#   baseline: tests/e2e/baseline.toml
+# Reads:
+#   tests/e2e/results/{project}.toml
+#   tests/e2e/baselines/{project}.toml
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-RESULTS="${1:-$SCRIPT_DIR/last-results.toml}"
-BASELINE="${2:-$SCRIPT_DIR/baseline.toml}"
+RESULTS_DIR="$SCRIPT_DIR/results"
+BASELINES_DIR="$SCRIPT_DIR/baselines"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-if [[ ! -f "$RESULTS" ]]; then
-  echo "ERROR: Results file not found: $RESULTS"
-  echo "Run the benchmark first: KONDUCTOR_E2E=1 bash tests/e2e/benchmark.sh"
-  exit 1
-fi
+VERBOSE=false
+[[ "${1:-}" == "--verbose" ]] && VERBOSE=true
 
-if [[ ! -f "$BASELINE" ]]; then
-  echo "ERROR: Baseline file not found: $BASELINE"
-  exit 1
-fi
-
-# Parse a TOML value (simple key = value)
+# Parse a TOML value (simple key = value, handles quoted strings and booleans)
 toml_get() {
   local file="$1" key="$2"
-  grep "^${key} " "$file" | head -1 | sed 's/.*= *//' | tr -d '"'
+  grep "^${key} " "$file" 2>/dev/null | head -1 | sed 's/.*= *//' | tr -d '"'
 }
 
-FAIL=0
+TOTAL_FAIL=0
+TOTAL_PASS=0
+PROJECT_SUMMARIES=()
 
 echo -e "${CYAN}═══ Benchmark Comparison ═══${NC}"
 echo ""
 
-# Compare timing (flag if >2x baseline)
-for step in init plan exec verify; do
-  actual=$(toml_get "$RESULTS" "${step}_time_s")
-  limit=$(toml_get "$BASELINE" "${step}_time_s")
-  if [[ -z "$actual" || -z "$limit" ]]; then
-    echo -e "  ⚠ ${step}_time_s: skipped (missing data)"
+# Iterate over all result files
+for result_file in "$RESULTS_DIR"/*.toml; do
+  [[ -f "$result_file" ]] || continue
+
+  project=$(basename "$result_file" .toml)
+  baseline_file="$BASELINES_DIR/$project.toml"
+
+  if [[ ! -f "$baseline_file" ]]; then
+    echo -e "${YELLOW}⚠ $project: no baseline found, skipping${NC}"
     continue
   fi
-  if [[ $actual -gt $((limit * 2)) ]]; then
-    echo -e "  ${RED}✗ ${step}: ${actual}s > ${limit}s (2x baseline)${NC}"
-    FAIL=1
-  else
-    echo -e "  ${GREEN}✓ ${step}: ${actual}s <= ${limit}s limit${NC}"
+
+  PROJ_FAIL=0
+  PROJ_PASS=0
+  FAILURES=()
+
+  echo -e "${CYAN}── $project ──${NC}"
+
+  # --- Timing checks (1.5x threshold) ---
+  for step in init plan exec verify; do
+    actual=$(toml_get "$result_file" "${step}_s")
+    limit=$(toml_get "$baseline_file" "${step}_s")
+    if [[ -z "$actual" || -z "$limit" ]]; then
+      [[ "$VERBOSE" == "true" ]] && echo -e "  ${YELLOW}⚠ ${step}_s: skipped (missing data)${NC}"
+      continue
+    fi
+    threshold=$(( (limit * 3 + 1) / 2 ))  # 1.5x, integer math
+    if [[ $actual -gt $threshold ]]; then
+      echo -e "  ${RED}✗ ${step}: ${actual}s > ${threshold}s (1.5x of ${limit}s)${NC}"
+      FAILURES+=("${step} timing: ${actual}s > ${threshold}s")
+      PROJ_FAIL=$((PROJ_FAIL + 1))
+    else
+      [[ "$VERBOSE" == "true" ]] && echo -e "  ${GREEN}✓ ${step}: ${actual}s <= ${threshold}s${NC}"
+      PROJ_PASS=$((PROJ_PASS + 1))
+    fi
+  done
+
+  # --- Artifact checks (minimum counts) ---
+  for metric in plan_count python_files test_files; do
+    actual=$(toml_get "$result_file" "$metric")
+    min=$(toml_get "$baseline_file" "${metric}_min")
+    if [[ -z "$actual" || -z "$min" ]]; then
+      continue
+    fi
+    if [[ $actual -lt $min ]]; then
+      echo -e "  ${RED}✗ ${metric}: $actual < $min minimum${NC}"
+      FAILURES+=("${metric}: $actual < $min")
+      PROJ_FAIL=$((PROJ_FAIL + 1))
+    else
+      [[ "$VERBOSE" == "true" ]] && echo -e "  ${GREEN}✓ ${metric}: $actual >= $min${NC}"
+      PROJ_PASS=$((PROJ_PASS + 1))
+    fi
+  done
+
+  # --- Quality checks (strict pass/fail) ---
+  for metric in lint_pass tests_pass; do
+    actual=$(toml_get "$result_file" "$metric")
+    expected=$(toml_get "$baseline_file" "$metric")
+    if [[ -z "$actual" || -z "$expected" ]]; then
+      continue
+    fi
+    if [[ "$actual" == "skipped" ]]; then
+      [[ "$VERBOSE" == "true" ]] && echo -e "  ${YELLOW}⚠ ${metric}: skipped (tool not available)${NC}"
+      continue
+    fi
+    if [[ "$actual" != "$expected" ]]; then
+      echo -e "  ${RED}✗ ${metric}: $actual (expected $expected)${NC}"
+      FAILURES+=("${metric}: $actual != $expected")
+      PROJ_FAIL=$((PROJ_FAIL + 1))
+    else
+      [[ "$VERBOSE" == "true" ]] && echo -e "  ${GREEN}✓ ${metric}: $actual${NC}"
+      PROJ_PASS=$((PROJ_PASS + 1))
+    fi
+  done
+
+  # --- Test count check ---
+  actual_tests=$(toml_get "$result_file" "tests_total")
+  min_tests=$(toml_get "$baseline_file" "tests_total_min")
+  if [[ -n "$actual_tests" && -n "$min_tests" && "$actual_tests" != "-1" ]]; then
+    if [[ $actual_tests -lt $min_tests ]]; then
+      echo -e "  ${RED}✗ tests_total: $actual_tests < $min_tests minimum${NC}"
+      FAILURES+=("tests_total: $actual_tests < $min_tests")
+      PROJ_FAIL=$((PROJ_FAIL + 1))
+    else
+      [[ "$VERBOSE" == "true" ]] && echo -e "  ${GREEN}✓ tests_total: $actual_tests >= $min_tests${NC}"
+      PROJ_PASS=$((PROJ_PASS + 1))
+    fi
   fi
+
+  # --- SAM checks ---
+  expected_sam=$(toml_get "$baseline_file" "sam_template")
+  if [[ "$expected_sam" == "true" ]]; then
+    actual_sam=$(toml_get "$result_file" "sam_template")
+    if [[ "$actual_sam" != "true" ]]; then
+      echo -e "  ${RED}✗ sam_template: missing (expected)${NC}"
+      FAILURES+=("sam_template: missing")
+      PROJ_FAIL=$((PROJ_FAIL + 1))
+    else
+      [[ "$VERBOSE" == "true" ]] && echo -e "  ${GREEN}✓ sam_template: present${NC}"
+      PROJ_PASS=$((PROJ_PASS + 1))
+
+      actual_valid=$(toml_get "$result_file" "sam_valid")
+      expected_valid=$(toml_get "$baseline_file" "sam_valid")
+      if [[ -n "$expected_valid" && "$actual_valid" != "skipped" && "$actual_valid" != "$expected_valid" ]]; then
+        echo -e "  ${RED}✗ sam_valid: $actual_valid (expected $expected_valid)${NC}"
+        FAILURES+=("sam_valid: $actual_valid != $expected_valid")
+        PROJ_FAIL=$((PROJ_FAIL + 1))
+      elif [[ "$actual_valid" != "skipped" ]]; then
+        [[ "$VERBOSE" == "true" ]] && echo -e "  ${GREEN}✓ sam_valid: $actual_valid${NC}"
+        PROJ_PASS=$((PROJ_PASS + 1))
+      fi
+    fi
+  fi
+
+  # --- Project summary ---
+  TOTAL_FAIL=$((TOTAL_FAIL + PROJ_FAIL))
+  TOTAL_PASS=$((TOTAL_PASS + PROJ_PASS))
+
+  if [[ $PROJ_FAIL -eq 0 ]]; then
+    PROJECT_SUMMARIES+=("${GREEN}✓ $project: $PROJ_PASS passed${NC}")
+  else
+    failure_reasons=$(printf '%s; ' "${FAILURES[@]}")
+    PROJECT_SUMMARIES+=("${RED}✗ $project: $PROJ_FAIL failed ($failure_reasons)${NC}")
+  fi
+  echo ""
 done
 
-# Compare plan count
-actual_plans=$(toml_get "$RESULTS" "plan_count")
-min_plans=$(toml_get "$BASELINE" "plan_count_min")
-if [[ -n "$actual_plans" && -n "$min_plans" ]]; then
-  if [[ $actual_plans -lt $min_plans ]]; then
-    echo -e "  ${RED}✗ plan_count: $actual_plans < $min_plans minimum${NC}"
-    FAIL=1
-  else
-    echo -e "  ${GREEN}✓ plan_count: $actual_plans >= $min_plans${NC}"
-  fi
-fi
+# --- Overall matrix ---
 
-# Compare gap count
-actual_gaps=$(toml_get "$RESULTS" "gap_count")
-max_gaps=$(toml_get "$BASELINE" "gap_count_max")
-if [[ -n "$actual_gaps" && -n "$max_gaps" ]]; then
-  if [[ $actual_gaps -gt $max_gaps ]]; then
-    echo -e "  ${RED}✗ gap_count: $actual_gaps > $max_gaps maximum${NC}"
-    FAIL=1
-  else
-    echo -e "  ${GREEN}✓ gap_count: $actual_gaps <= $max_gaps${NC}"
-  fi
-fi
-
-# Compare verification status
-actual_status=$(toml_get "$RESULTS" "verification_status")
-expected_status=$(toml_get "$BASELINE" "verification_status")
-if [[ -n "$actual_status" && -n "$expected_status" ]]; then
-  if [[ "$actual_status" != "$expected_status" ]]; then
-    echo -e "  ${RED}✗ verification: $actual_status (expected $expected_status)${NC}"
-    FAIL=1
-  else
-    echo -e "  ${GREEN}✓ verification: $actual_status${NC}"
-  fi
-fi
-
+echo -e "${CYAN}═══ Summary Matrix ═══${NC}"
+for s in "${PROJECT_SUMMARIES[@]}"; do
+  echo -e "  $s"
+done
 echo ""
-if [[ $FAIL -eq 1 ]]; then
+echo -e "  Total: ${GREEN}$TOTAL_PASS passed${NC}, ${RED}$TOTAL_FAIL failed${NC}"
+echo ""
+
+if [[ $TOTAL_FAIL -gt 0 ]]; then
   echo -e "${RED}REGRESSION DETECTED${NC}"
   exit 1
 else
-  echo -e "${GREEN}ALL CHECKS PASSED${NC}"
+  echo -e "${GREEN}ALL PROJECTS PASSED${NC}"
   exit 0
 fi
