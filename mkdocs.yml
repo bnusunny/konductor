@@ -40,9 +40,15 @@ nav:
     - Execute: pipeline/execute.md
     - Verify: pipeline/verify.md
     - Ship: pipeline/ship.md
+  - Commands: commands.md
+  - Hooks: hooks.md
+  - Reference:
+    - Configuration: reference/configuration.md
+    - State Machine: reference/state-machine.md
+    - Plan File Format: reference/plan-format.md
   - Architecture:
     - How It Works: architecture/how-it-works.md
-  - Commands: commands.md
+  - Troubleshooting: troubleshooting.md
 
 markdown_extensions:
   - admonition

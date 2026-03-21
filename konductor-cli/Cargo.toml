@@ -1,6 +1,6 @@
 [package]
 name = "konductor"
-version = "0.1.0"
+version = "0.2.1"
 edition = "2021"
 description = "Unified CLI for Konductor — MCP server and hook processor"
 license = "MIT"
@@ -18,6 +18,9 @@ serde_json = "1"
 tokio = { version = "1", features = ["full"] }
 toml = "0.8"
 chrono = "0.4"
+
+[dev-dependencies]
+tempfile = "3"
 
 [profile.release]
 opt-level = "s"

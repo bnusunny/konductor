@@ -1,0 +1,14 @@
+[general]
+default_model = "claude-sonnet-4"
+
+[execution]
+max_wave_parallelism = 4
+
+[git]
+auto_commit = true
+branching_strategy = "none"
+
+[features]
+research = true
+plan_checker = true
+verifier = true

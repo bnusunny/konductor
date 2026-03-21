@@ -1,29 +1,119 @@
 # Commands
 
-| Command | Prompt Shortcut | Description |
-|---------|----------------|-------------|
-| `initialize` | `@k-init` | Start a new project, discover requirements, generate spec docs |
-| `next` | `@k-next` | Advance to the next pipeline phase automatically |
-| `plan` | `@k-plan` | Generate phase plans with tasks and acceptance criteria |
-| `exec` / `execute` | `@k-exec` | Execute tasks for current phase (TDD workflow) |
-| `verify` | `@k-verify` | Run tests and validate acceptance criteria |
-| `status` | `@k-status` | Show current phase, progress, and next steps |
-| `ship` | `@k-ship` | Commit work, create release notes, open PR |
-| `discuss` | `@k-discuss` | Ask questions about the project, codebase, or pipeline |
-| `map-codebase` | `@k-map` | Analyze existing code structure, patterns, and conventions |
+## Prompt Commands
 
-!!! tip
-    Type `@k-` then press Tab to autocomplete any Konductor command. Prompts with arguments (like `@k-plan`) will prompt you for the phase number.
+All commands are available as Tab-completable prompts. Type `@k-` then press Tab.
+
+### `@k-init` — Initialize Project
+
+Discovers project goals, generates spec documents (`project.md`, `requirements.md`, `roadmap.md`), and sets up the pipeline.
+
+```
+> @k-init
+```
+
+Creates the `.konductor/` directory with initial state.
+
+### `@k-plan` — Plan a Phase
+
+Researches the ecosystem, creates execution plans with tasks and acceptance criteria, and validates them.
+
+```
+> @k-plan 01
+```
+
+Takes a phase number as argument. Creates plan files in `.konductor/phases/{phase}/plans/`.
+
+### `@k-exec` — Execute Current Phase
+
+Spawns executor subagents to implement each plan following TDD workflow.
+
+```
+> @k-exec
+```
+
+Executes plans wave by wave. Creates summary files for completed plans.
+
+### `@k-verify` — Verify Current Phase
+
+Validates that phase goals were achieved using the 3-level verification framework (Exists, Substantive, Wired).
+
+```
+> @k-verify
+```
+
+Writes verification report to `.konductor/phases/{phase}/verification.md`.
+
+### `@k-ship` — Ship Project
+
+Verifies all phases are complete, runs cross-phase integration checks, creates git tag, and archives project state.
+
+```
+> @k-ship
+```
+
+### `@k-next` — Advance Pipeline
+
+Determines what needs to happen next based on current state and executes it automatically.
+
+```
+> @k-next
+```
+
+This is the most common command — it reads the state and runs the appropriate pipeline step.
+
+### `@k-status` — Show Status
+
+Displays phase progress, current position, recent activity, blockers, and next steps.
+
+```
+> @k-status
+```
+
+### `@k-discuss` — Discuss Phase
+
+Sets context for a phase before planning — approach preferences, library choices, architectural trade-offs.
+
+```
+> @k-discuss 01
+```
+
+Takes a phase number as argument. Writes decisions to `.konductor/phases/{phase}/context.md`.
+
+### `@k-map` — Map Codebase
+
+Analyzes existing code structure, tech stack, architecture patterns, testing setup, and integrations.
+
+```
+> @k-map
+```
+
+Used for brownfield projects during initialization.
 
 ## MCP Tools
 
-These tools are available to the orchestrator agent via the built-in MCP server for deterministic state management:
+These tools are used by the orchestrator agent for deterministic state management. They're available via the built-in MCP server.
 
 | Tool | Description |
 |------|-------------|
 | `state_get` | Read current pipeline state from `state.toml` |
-| `state_transition` | Advance to a new step (with validation) |
+| `state_transition` | Advance to a new step (validates the transition is allowed) |
 | `state_add_blocker` | Add a blocker to the current phase |
 | `state_resolve_blocker` | Resolve a blocker for a phase |
-| `plans_list` | List plans for a phase with wave and completion status |
-| `status` | Get a structured status report of the entire project |
+| `plans_list` | List plans for a phase with wave, type, dependencies, and completion status |
+| `status` | Get a structured status report with progress, blockers, and config |
+| `config_get` | Read current configuration from `config.toml` |
+
+### Error Responses
+
+All MCP tools return structured JSON errors:
+
+```json
+{
+  "error": true,
+  "code": "INVALID_TRANSITION",
+  "message": "Invalid transition: 'initialized' → 'executed'"
+}
+```
+
+Error codes: `STATE_NOT_FOUND`, `INVALID_TRANSITION`, `NO_PLANS`, `IO_ERROR`, `INVALID_CONFIG`, `SERIALIZE_ERROR`.

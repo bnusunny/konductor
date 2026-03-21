@@ -1,0 +1,20 @@
+[project]
+name = "konductor"
+initialized = "2026-03-21T18:15:23Z"
+
+[current]
+phase = "03"
+step = "complete"
+status = "idle"
+plan = ""
+wave = 1
+
+[progress]
+phases_total = 3
+phases_complete = 3
+current_phase_plans = 2
+current_phase_plans_complete = 2
+
+[metrics]
+last_activity = "2026-03-21T18:43:44Z"
+total_agent_sessions = 6

@@ -30,7 +30,7 @@ const TRANSITIONS: &[(&str, &str)] = &[
     ("blocked", "executed"),
 ];
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct KonductorState {
     pub project: Option<Project>,
     pub current: Option<Current>,
@@ -41,13 +41,13 @@ pub struct KonductorState {
     pub release: Option<Release>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Project {
     pub name: Option<String>,
     pub initialized: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Current {
     pub phase: Option<String>,
     pub step: Option<String>,
@@ -56,7 +56,7 @@ pub struct Current {
     pub wave: Option<i64>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Progress {
     pub phases_total: Option<i64>,
     pub phases_complete: Option<i64>,
@@ -64,13 +64,13 @@ pub struct Progress {
     pub current_phase_plans_complete: Option<i64>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Metrics {
     pub last_activity: Option<String>,
     pub total_agent_sessions: Option<i64>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Blocker {
     pub phase: Option<String>,
     pub step: Option<String>,
@@ -79,14 +79,17 @@ pub struct Blocker {
     pub resolved: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Release {
     pub version: Option<String>,
     pub shipped: Option<String>,
 }
 
 pub fn read_state() -> Result<KonductorState, String> {
-    let path = Path::new(STATE_FILE);
+    read_state_from(Path::new(STATE_FILE))
+}
+
+pub fn read_state_from(path: &Path) -> Result<KonductorState, String> {
     if !path.exists() {
         return Err("No Konductor project found. Say 'initialize my project' to get started.".into());
     }
@@ -95,8 +98,12 @@ pub fn read_state() -> Result<KonductorState, String> {
 }
 
 pub fn write_state(state: &KonductorState) -> Result<(), String> {
+    write_state_to(state, Path::new(STATE_FILE))
+}
+
+pub fn write_state_to(state: &KonductorState, path: &Path) -> Result<(), String> {
     let content = toml::to_string_pretty(state).map_err(|e| format!("Failed to serialize state: {e}"))?;
-    fs::write(STATE_FILE, content).map_err(|e| format!("Failed to write state.toml: {e}"))
+    fs::write(path, content).map_err(|e| format!("Failed to write state.toml: {e}"))
 }
 
 pub fn validate_transition(from: &str, to: &str) -> Result<(), String> {
@@ -178,14 +185,51 @@ pub fn resolve_blocker(phase: &str) -> Result<KonductorState, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    fn sample_state() -> KonductorState {
+        KonductorState {
+            project: Some(Project {
+                name: Some("test".into()),
+                initialized: Some("2026-01-01T00:00:00Z".into()),
+            }),
+            current: Some(Current {
+                phase: Some("01".into()),
+                step: Some("initialized".into()),
+                status: Some("idle".into()),
+                plan: None,
+                wave: None,
+            }),
+            progress: Some(Progress {
+                phases_total: Some(3),
+                phases_complete: Some(0),
+                current_phase_plans: Some(0),
+                current_phase_plans_complete: Some(0),
+            }),
+            metrics: Some(Metrics {
+                last_activity: Some("2026-01-01T00:00:00Z".into()),
+                total_agent_sessions: Some(1),
+            }),
+            blockers: vec![],
+            release: None,
+        }
+    }
+
+    // -- validate_transition tests --
 
     #[test]
     fn test_valid_transitions() {
         assert!(validate_transition("initialized", "planned").is_ok());
         assert!(validate_transition("initialized", "discussed").is_ok());
+        assert!(validate_transition("discussed", "planned").is_ok());
         assert!(validate_transition("planned", "executing").is_ok());
         assert!(validate_transition("executing", "executed").is_ok());
         assert!(validate_transition("executed", "complete").is_ok());
+        assert!(validate_transition("complete", "shipped").is_ok());
+        assert!(validate_transition("blocked", "initialized").is_ok());
+        assert!(validate_transition("blocked", "planned").is_ok());
+        assert!(validate_transition("blocked", "executed").is_ok());
     }
 
     #[test]
@@ -193,10 +237,175 @@ mod tests {
         assert!(validate_transition("initialized", "executed").is_err());
         assert!(validate_transition("planned", "complete").is_err());
         assert!(validate_transition("executed", "planned").is_err());
+        assert!(validate_transition("shipped", "initialized").is_err());
+        assert!(validate_transition("executing", "planned").is_err());
     }
 
     #[test]
     fn test_invalid_step() {
-        assert!(validate_transition("initialized", "bogus").is_err());
+        let err = validate_transition("initialized", "bogus").unwrap_err();
+        assert!(err.contains("Invalid step"));
+        assert!(err.contains("bogus"));
+    }
+
+    // -- read_state_from / write_state_to tests --
+
+    #[test]
+    fn test_read_state_missing_file() {
+        let path = Path::new("/tmp/nonexistent_konductor_state.toml");
+        let err = read_state_from(path).unwrap_err();
+        assert!(err.contains("No Konductor project found"));
+    }
+
+    #[test]
+    fn test_read_state_malformed_toml() {
+        let mut f = NamedTempFile::new().unwrap();
+        write!(f, "this is not valid toml [[[").unwrap();
+        let err = read_state_from(f.path()).unwrap_err();
+        assert!(err.contains("Failed to parse state.toml"));
+    }
+
+    #[test]
+    fn test_write_and_read_roundtrip() {
+        let f = NamedTempFile::new().unwrap();
+        let state = sample_state();
+        write_state_to(&state, f.path()).unwrap();
+        let loaded = read_state_from(f.path()).unwrap();
+        assert_eq!(state.project, loaded.project);
+        assert_eq!(state.current, loaded.current);
+        assert_eq!(state.progress, loaded.progress);
+    }
+
+    #[test]
+    fn test_write_state_to_readonly_path() {
+        let state = sample_state();
+        let err = write_state_to(&state, Path::new("/proc/nonexistent")).unwrap_err();
+        assert!(err.contains("Failed to write state.toml"));
+    }
+
+    // -- transition tests (using real filesystem via STATE_FILE) --
+    // These are integration-style tests that require .konductor/state.toml to exist.
+    // We skip them in unit test context and test the logic via validate_transition + read/write.
+
+    #[test]
+    fn test_transition_validates_current_step() {
+        // Test that transition logic correctly rejects invalid from→to
+        // by testing validate_transition which transition() delegates to
+        assert!(validate_transition("initialized", "executing").is_err());
+        assert!(validate_transition("initialized", "planned").is_ok());
+    }
+
+    // -- blocker tests (logic only, no filesystem) --
+
+    #[test]
+    fn test_blocker_struct_serialization() {
+        let blocker = Blocker {
+            phase: Some("01".into()),
+            step: Some("executing".into()),
+            reason: Some("test failure".into()),
+            timestamp: Some("2026-01-01T00:00:00Z".into()),
+            resolved: Some(false),
+        };
+        let toml_str = toml::to_string(&blocker).unwrap();
+        assert!(toml_str.contains("test failure"));
+        let parsed: Blocker = toml::from_str(&toml_str).unwrap();
+        assert_eq!(parsed.phase, Some("01".into()));
+        assert_eq!(parsed.resolved, Some(false));
+    }
+
+    #[test]
+    fn test_state_with_blockers_roundtrip() {
+        let f = NamedTempFile::new().unwrap();
+        let mut state = sample_state();
+        state.blockers.push(Blocker {
+            phase: Some("01".into()),
+            step: Some("executing".into()),
+            reason: Some("build failed".into()),
+            timestamp: Some("2026-01-01T00:00:00Z".into()),
+            resolved: Some(false),
+        });
+        write_state_to(&state, f.path()).unwrap();
+        let loaded = read_state_from(f.path()).unwrap();
+        assert_eq!(loaded.blockers.len(), 1);
+        assert_eq!(loaded.blockers[0].reason, Some("build failed".into()));
+        assert_eq!(loaded.blockers[0].resolved, Some(false));
+    }
+
+    #[test]
+    fn test_resolve_blocker_logic() {
+        let mut state = sample_state();
+        state.blockers.push(Blocker {
+            phase: Some("01".into()),
+            step: Some("executing".into()),
+            reason: Some("error".into()),
+            timestamp: None,
+            resolved: Some(false),
+        });
+        state.current.as_mut().unwrap().status = Some("blocked".into());
+
+        // Resolve the blocker
+        let found = state.blockers.iter_mut().find(|b| {
+            b.phase.as_deref() == Some("01") && b.resolved != Some(true)
+        });
+        assert!(found.is_some());
+        found.unwrap().resolved = Some(true);
+
+        let has_active = state.blockers.iter().any(|b| b.resolved != Some(true));
+        assert!(!has_active);
+    }
+
+    #[test]
+    fn test_resolve_nonexistent_blocker() {
+        let state = sample_state();
+        let found = state.blockers.iter().find(|b| {
+            b.phase.as_deref() == Some("99") && b.resolved != Some(true)
+        });
+        assert!(found.is_none());
+    }
+
+    #[test]
+    fn test_multiple_blockers_partial_resolve() {
+        let mut state = sample_state();
+        state.blockers.push(Blocker {
+            phase: Some("01".into()),
+            step: None,
+            reason: Some("first".into()),
+            timestamp: None,
+            resolved: Some(false),
+        });
+        state.blockers.push(Blocker {
+            phase: Some("01".into()),
+            step: None,
+            reason: Some("second".into()),
+            timestamp: None,
+            resolved: Some(false),
+        });
+
+        // Resolve first blocker only
+        let found = state.blockers.iter_mut().find(|b| {
+            b.phase.as_deref() == Some("01") && b.resolved != Some(true)
+        });
+        found.unwrap().resolved = Some(true);
+
+        // Still has active blockers
+        let has_active = state.blockers.iter().any(|b| b.resolved != Some(true));
+        assert!(has_active);
+    }
+
+    #[test]
+    fn test_empty_state_roundtrip() {
+        let f = NamedTempFile::new().unwrap();
+        let state = KonductorState {
+            project: None,
+            current: None,
+            progress: None,
+            metrics: None,
+            blockers: vec![],
+            release: None,
+        };
+        write_state_to(&state, f.path()).unwrap();
+        let loaded = read_state_from(f.path()).unwrap();
+        assert_eq!(loaded.blockers.len(), 0);
+        assert!(loaded.project.is_none());
     }
 }

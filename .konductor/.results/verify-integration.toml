@@ -1,0 +1,10 @@
+step = "verify-integration"
+status = "ok"
+timestamp = "2026-03-21T18:51:24Z"
+checks = [
+  "cargo test: 38 passed, 0 failed",
+  "cargo clippy: 0 warnings",
+  "version sync: version.txt == Cargo.toml == --version (0.2.1)",
+  "install.sh: syntax OK, --help works",
+  "mkdocs build: 17 HTML pages generated in 0.31s",
+]

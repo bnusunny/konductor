@@ -1,3 +1,4 @@
+mod config;
 mod hook;
 mod mcp;
 mod state;
@@ -5,7 +6,7 @@ mod state;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "konductor", about = "Konductor CLI — MCP server and hook processor")]
+#[command(name = "konductor", about = "Konductor CLI — MCP server and hook processor", version)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
