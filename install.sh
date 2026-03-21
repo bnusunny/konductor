@@ -158,10 +158,21 @@ if [[ -d "$SCRIPT_DIR/skills" ]]; then
   done
 fi
 
-# Copy hooks
+# Install hooks with correct binary path for install scope
 if [[ -f "$SCRIPT_DIR/hooks/konductor-hooks.json" ]]; then
   echo "Installing hooks..."
-  safe_cp "$SCRIPT_DIR/hooks/konductor-hooks.json" "$TARGET_DIR/hooks/konductor-hooks.json"
+  HOOKS_DST="$TARGET_DIR/hooks/konductor-hooks.json"
+  if [[ -e "$HOOKS_DST" && "$FORCE" != true ]]; then
+    echo "  ⏭ Skipping konductor-hooks.json (already exists, use --force to overwrite)"
+  else
+    if [[ "$SCOPE" == "local" ]]; then
+      HOOK_CMD=".kiro/bin/konductor hook"
+    else
+      HOOK_CMD="~/.kiro/bin/konductor hook"
+    fi
+    sed "s|~/.kiro/bin/konductor hook|$HOOK_CMD|g" \
+      "$SCRIPT_DIR/hooks/konductor-hooks.json" > "$HOOKS_DST"
+  fi
 fi
 
 # Install konductor binary (unified: mcp server + hook processor)
