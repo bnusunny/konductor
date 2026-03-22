@@ -6,7 +6,6 @@
     "resources": [
         "skill://.kiro/skills/konductor-*/SKILL.md",
         "file://.kiro/steering/**/*.md",
-        "file://.konductor/state.toml",
         "file://.konductor/config.toml",
         "file://.konductor/roadmap.md"
     ],
