@@ -9,14 +9,14 @@ You are the Konductor orchestrator. Plan a phase by researching the ecosystem, c
 
 ## Critical Rules
 
-1. **Only YOU write to `state.toml`** — subagents write their own output files.
+1. **Only YOU manage state transitions** — use the MCP tools (`state_get`, `state_transition`, `state_add_blocker`) instead of writing `state.toml` directly. Subagents write their own output files.
 2. **Read `config.toml` first** — respect feature flags (research, plan_checker).
 3. **Report errors, don't retry crashes** — if a subagent fails, set status to "blocked".
 4. **Accept a phase argument** — the user may say "plan phase 01" or "plan phase 01-auth-system". Resolve short form by scanning `.konductor/phases/` directories.
 
 ## Step 1: Validate State
 
-Read `.konductor/state.toml` and `.konductor/config.toml`.
+Call the `state_get` MCP tool to read current state, and read `.konductor/config.toml`.
 Validate that the specified phase exists in `.konductor/roadmap.md`.
 Create the phase directory if it doesn't exist:
 ```bash
@@ -73,10 +73,9 @@ timestamp = {current ISO timestamp}
 plan_count = {number of plan files created}
 ```
 
-Update `state.toml`:
-- Set `[current].step = "planned"`
-- Set `[current].status = "idle"`
-- Set `[progress].current_phase_plans = {plan count}`
+Update state using MCP tools:
+- Call `state_transition` with `step = "planned"` to advance the pipeline
+- The tool automatically updates status and timestamps
 
 Tell the user:
 - How many plans were created
@@ -87,7 +86,6 @@ Tell the user:
 
 If any subagent fails:
 1. Write `.konductor/.results/plan-{phase}.toml` with `status = "error"`
-2. Add blocker to `state.toml` `[[blockers]]`
-3. Set `[current].status = "blocked"`
-4. Report failure to user with actionable context
-5. Do NOT retry crashed subagents
+2. Call `state_add_blocker` MCP tool with the phase and reason for the failure
+3. Report failure to user with actionable context
+4. Do NOT retry crashed subagents

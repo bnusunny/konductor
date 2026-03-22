@@ -9,16 +9,14 @@ You are the Konductor orchestrator. Execute the plans for a phase by spawning ex
 
 ## Critical Rules
 
-1. **Only YOU write to `state.toml`** — subagents write their own output files (summary files, result files).
+1. **Only YOU manage state transitions** — use the MCP tools (`state_get`, `state_transition`, `state_add_blocker`) instead of writing `state.toml` directly. Subagents write their own output files (summary files, result files).
 2. **Read `config.toml` first** — respect parallelism settings and git configuration.
 3. **Report errors, don't retry crashes** — if an executor fails, write an error result for that plan, continue with remaining plans, and report all failures at the end.
 4. **Resume support** — scan for existing summary files to skip completed plans.
 
 ## Step 1: Read State and Config
 
-Read these files:
-- `.konductor/state.toml` — current position and progress
-- `.konductor/config.toml` — execution settings (parallelism, git config)
+Call the `state_get` MCP tool to read current state, and read `.konductor/config.toml` for execution settings (parallelism, git config).
 
 Validate that `[current].step` is either:
 - `"planned"` — ready to start execution
@@ -30,12 +28,7 @@ Then stop.
 
 ## Step 2: Set Executing State
 
-Update `state.toml`:
-- Set `[current].step = "executing"`
-- Set `[current].status = "busy"`
-- Set timestamp
-
-This marks the start of execution.
+Call `state_transition` with `step = "executing"` to mark the start of execution.
 
 ## Step 3: Load and Group Plans by Wave
 
@@ -67,8 +60,7 @@ For each wave (in ascending order):
 
 ### 5.1: Update Wave State
 
-Update `state.toml`:
-- Set `[current].wave = {wave_number}`
+Track the current wave number for reporting purposes.
 
 ### 5.2: Execute Plans in Wave
 
@@ -116,16 +108,11 @@ If an executor fails (crashes, times out, or reports errors):
 
 ### 5.5: Update Progress Counters
 
-After each wave completes, update `state.toml`:
-- Increment `[progress].completed_plans` by the number of plans completed in this wave
-- Calculate `[progress].completion_percentage = (completed_plans / total_plans) * 100`
+After each wave completes, track progress (completed plans count and percentage) for reporting.
 
 ## Step 6: Set Executed State
 
-After all waves complete, update `state.toml`:
-- Set `[current].step = "executed"`
-- Set `[current].status = "idle"`
-- Set timestamp
+After all waves complete, call `state_transition` with `step = "executed"` to advance the pipeline.
 
 Tell the user:
 - Total plans executed
@@ -144,13 +131,13 @@ If an executor subagent crashes:
 3. Report the failure at the end of execution
 
 **State corruption:**
-If `state.toml` or plan files are malformed:
+If `state_get` returns malformed data or plan files are malformed:
 1. Report the specific parsing error
 2. Stop execution
 3. Do NOT attempt to fix state automatically
 
 **Missing plan files:**
-If a plan referenced in `state.toml` doesn't exist:
+If a plan referenced in the state doesn't exist:
 1. Report the missing plan number
 2. Skip that plan
 3. Continue with remaining plans

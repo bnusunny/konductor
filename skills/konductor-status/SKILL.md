@@ -7,29 +7,27 @@ description: Display project status and progress. Use when the user says status,
 
 You are the Konductor orchestrator. Display the current status and progress of the project.
 
-## Step 1: Read Project State
+## Step 1: Get Project Status
 
-Read these files:
-- `.konductor/state.toml` — current phase, step, progress counters
-- `.konductor/roadmap.md` — all phases with goals
-- Scan `.konductor/.results/` directory for result files
+Call the `status` MCP tool. This returns a structured JSON report with:
+- `project` — project name
+- `current_phase`, `current_step`, `status`
+- `phases_total`, `phases_complete`
+- `current_phase_plans`, `current_phase_plans_complete`
+- `active_blockers` count and `blockers` list
+- `last_activity`, `total_agent_sessions`
+- `next_suggestion`
 
-If `.konductor/state.toml` doesn't exist, tell the user:
+If the tool returns a `STATE_NOT_FOUND` error, tell the user:
 > "No Konductor project found. Run 'init' to initialize a project."
 
 Then stop.
 
 ## Step 2: Parse Phase Status
 
-From `roadmap.md`, extract all phase numbers and names.
+Read `.konductor/roadmap.md` to extract all phase numbers and names.
 
-From `state.toml`, read:
-- `[current].phase` — active phase
-- `[current].step` — current step within phase (initialized, discussed, planned, executing, executed, verified, complete)
-- `[progress].phases_total` — total phases
-- `[progress].phases_complete` — completed phases
-
-For each phase in the roadmap:
+Using the `current_phase` from the status report:
 1. If phase number < current phase number: status = "complete" (✓)
 2. If phase number = current phase number: status = "active" (○)
 3. If phase number > current phase number: status = "pending" (·)
@@ -39,11 +37,8 @@ For each phase in the roadmap:
 From `.konductor/.results/`, scan result files (most recent 5):
 - Look for files like `execute-{phase}-plan-{n}.toml`, `verify-{phase}.toml`, etc.
 - Extract timestamps and actions
-- Identify blockers (any result files with `status = "error"`)
 
-From `state.toml`, read:
-- `[metrics].last_activity` — timestamp of last activity
-- `[metrics].total_agent_sessions` — number of agent invocations
+Use the `last_activity` and `total_agent_sessions` from the status report.
 
 ## Step 4: Check for Decisions
 
@@ -106,8 +101,8 @@ Last activity: {last_activity_relative} ({last_activity_absolute})
 ## Error Handling
 
 **Missing state files:**
-If `state.toml` or `roadmap.md` is missing or malformed:
-1. Report which file is missing or corrupted
+If the `status` tool returns an error:
+1. Report the error
 2. Suggest running `init` to reinitialize (warn about overwriting)
 
 **Empty results directory:**

@@ -9,15 +9,14 @@ You are the Konductor orchestrator. Your job is to determine the next step in th
 
 ## Critical Rules
 
-1. **Only YOU write to `state.toml`** — subagents never touch it. They write their own output files.
-2. **`.results/` is the source of truth** — if `state.toml` and `.results/` conflict, trust `.results/`.
+1. **Only YOU manage state transitions** — use the MCP tools (`state_get`, `state_transition`, `state_add_blocker`, `plans_list`) instead of writing `state.toml` directly. Subagents never touch state. They write their own output files.
+2. **`.results/` is the source of truth** — if state and `.results/` conflict, trust `.results/`.
 3. **Read `config.toml` first** — respect feature flags and parallelism settings.
-4. **Report errors, don't retry crashes** — if a subagent fails, set status to "blocked" and tell the user.
+4. **Report errors, don't retry crashes** — if a subagent fails, call `state_add_blocker` and tell the user.
 
 ## Step 1: Read State
 
-Read these files:
-- `.konductor/state.toml` — current position
+Call the `state_get` MCP tool to read current state. Also read:
 - `.konductor/config.toml` — feature flags and settings
 - `.konductor/roadmap.md` — phase list and status
 
@@ -27,7 +26,7 @@ Then stop.
 
 ## Step 2: Determine Next Action
 
-Based on `state.toml` field `[current].step`:
+Based on the `current.step` field from `state_get`:
 
 ### Case: `step = "initialized"` or `step = "discussed"`
 
@@ -68,7 +67,7 @@ Then run the **Planning Pipeline**:
    status = "ok"
    timestamp = {current ISO timestamp}
    ```
-   Update `state.toml`: set `[current].step = "planned"`.
+   Update state: call `state_transition` with `step = "planned"`.
    Tell the user: "Phase {phase} planned with N plans in M waves. Say 'next' to execute."
 
 ### Case: `step = "planned"`
@@ -78,10 +77,10 @@ The phase is ready for execution. Run the **Execution Pipeline**:
 1. Read `config.toml` for `execution.max_wave_parallelism` and `git.auto_commit`.
 2. Read all plan files from `.konductor/phases/{phase}/plans/`, parse their TOML frontmatter for `wave` field.
 3. Group plans by wave number (wave 1 first, then 2, etc.).
-4. Update `state.toml`: set `[current].step = "executing"`.
+4. Call `state_transition` with `step = "executing"`.
 
 5. **For each wave** (in order):
-   Update `state.toml`: set `[current].wave = {wave_number}`.
+   Update wave tracking as needed.
 
    **If `max_wave_parallelism > 1` (parallel mode):**
    For each plan in this wave, use the **konductor-executor** agent to execute it. Launch all plans in the wave simultaneously. Each executor receives:
@@ -94,10 +93,10 @@ The phase is ready for execution. Run the **Execution Pipeline**:
    **If `max_wave_parallelism = 1` (sequential mode):**
    Execute plans one at a time, in order within the wave.
 
-   After each wave completes, update `state.toml` progress fields.
+   After each wave completes, track progress.
 
 6. Write `.konductor/.results/execute-{phase}-plan-{n}.toml` for each completed plan.
-7. Update `state.toml`: set `[current].step = "executed"`.
+7. Call `state_transition` with `step = "executed"`.
 8. Tell the user: "Phase {phase} executed. N plans completed. Say 'next' to verify."
 
 ### Case: `step = "executing"`
@@ -113,7 +112,7 @@ Execution was interrupted. Resume:
 The phase needs verification. Run the **Verification Pipeline**:
 
 1. Check if `config.toml` `features.verifier = false`. If so, skip verification:
-   Update `state.toml`: set `[current].step = "complete"`, advance phase. Stop.
+   Call `state_transition` with `step = "complete"`, advance phase. Stop.
 
 2. Use the **konductor-verifier** agent to verify the phase. Provide it with:
    - All summary files from `.konductor/phases/{phase}/plans/`
@@ -125,36 +124,27 @@ The phase needs verification. Run the **Verification Pipeline**:
 
 3. Read `verification.md`. Write `.konductor/.results/verify-{phase}.toml`.
 4. If status = "ok":
-   Update `state.toml`: set `[current].step = "complete"`.
-   Advance to next phase in roadmap (update `[current].phase`).
-   Reset step fields for new phase.
+   Call `state_transition` with `step = "complete"`.
+   Advance to next phase in roadmap (call `state_transition` with the new phase).
    Tell user: "Phase {phase} verified and complete. Advancing to next phase."
 5. If status = "issues-found":
-   Keep `state.toml` `[current].step = "executed"`.
+   Keep current step as "executed".
    Tell user the gaps found and suggest: "Run 'plan phase {phase}' to create gap-closure plans."
 
 ### Case: `step = "complete"`
 
 Current phase is done. Check roadmap for next incomplete phase:
-- If found: update `[current].phase`, set `step = "initialized"`, run Planning Pipeline.
+- If found: update phase via `state_transition` with the new phase, set `step = "initialized"`, run Planning Pipeline.
 - If all phases complete: tell user "All phases complete! Say 'ship' to finalize."
 
 ### Case: `step = "blocked"`
 
-Tell the user about the blocker from `state.toml` `[[blockers]]` and ask how to proceed.
+Tell the user about the blocker from the `state_get` response `blockers` list and ask how to proceed.
 
 ## Step 3: Error Handling
 
 If any subagent fails (no output produced, Kiro reports error):
 1. Write `.konductor/.results/{step}-{phase}.toml` with `status = "error"` and error description.
-2. Add a blocker to `state.toml`:
-   ```toml
-   [[blockers]]
-   phase = "{phase}"
-   description = "Subagent {agent-name} failed: {error details}"
-   created = {timestamp}
-   resolved = false
-   ```
-3. Set `state.toml` `[current].status = "blocked"`.
-4. Report the failure to the user with actionable context.
-5. Do NOT automatically retry a crashed subagent.
+2. Call `state_add_blocker` MCP tool with the phase and a description of the failure (e.g., "Subagent {agent-name} failed: {error details}").
+3. Report the failure to the user with actionable context.
+4. Do NOT automatically retry a crashed subagent.

@@ -130,9 +130,8 @@ mkdir -p .konductor/phases/{phase}
 
 ## Step 6: Update State
 
-Update `.konductor/state.toml`:
-- If `[current].phase` matches this phase and `[current].step` is "initialized", set `[current].step = "discussed"`
-- Update `[metrics].last_activity` timestamp
+Call the `state_transition` MCP tool with `step = "discussed"` to advance the pipeline state.
+If the transition fails (e.g., the current phase doesn't match), the tool will return an error — report it to the user.
 
 Write a result file at `.konductor/.results/discuss-{phase}.toml`:
 
@@ -163,7 +162,7 @@ These decisions will guide the planning process. Say 'next' to begin planning th
 If the phase doesn't exist in the roadmap, report it and stop.
 
 **State file missing:**
-If `.konductor/state.toml` doesn't exist:
+If calling `state_get` returns a `STATE_NOT_FOUND` error:
 1. Tell the user: "No Konductor project found. Run 'init' first."
 2. Stop
 

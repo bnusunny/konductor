@@ -9,10 +9,10 @@ You are the Konductor orchestrator. Finalize and ship the project after all phas
 
 ## Step 1: Read Project State
 
-Read `.konductor/state.toml` to verify project readiness:
-- Check `[current].phase` — should be the last phase
-- Check `[current].step` — should be "complete"
-- Check `[progress].phases_complete` — should equal `phases_total`
+Call the `state_get` MCP tool to verify project readiness:
+- Check `current.phase` — should be the last phase
+- Check `current.step` — should be "complete"
+- Check `progress.phases_complete` — should equal `phases_total`
 
 If the project is not ready to ship, proceed to Step 2 to report the gap.
 
@@ -118,15 +118,7 @@ All phase outputs integrated successfully.
 
 ## Step 7: Update State to Shipped
 
-Update `.konductor/state.toml`:
-- Set `[current].step = "shipped"`
-- Set `[current].status = "complete"`
-- Add `[release]` section:
-  ```toml
-  [release]
-  version = "{version}"
-  shipped = {current ISO timestamp}
-  ```
+Call `state_transition` with `step = "shipped"` to finalize the project state.
 
 ## Step 8: Report Success
 
