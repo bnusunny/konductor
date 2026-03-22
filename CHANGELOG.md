@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.1](https://github.com/bnusunny/konductor/compare/v0.4.0...v0.4.1) (2026-03-22)
+
+
+### Bug Fixes
+
+* **ci:** add workflow_dispatch trigger to build-release workflow ([56989bc](https://github.com/bnusunny/konductor/commit/56989bcaa694cd5de1b6de6758f254ba9d214586))
+* **ci:** chain build-release from release-please via workflow_dispatch ([0e69e89](https://github.com/bnusunny/konductor/commit/0e69e892d89f6e49ffb86b796d4af1ee37130937))
+* **ci:** checkout release tag in build-release workflow ([d371885](https://github.com/bnusunny/konductor/commit/d37188586a329e41014d90d2ee1fc7ce2d907787))
+
 ## [0.4.0](https://github.com/bnusunny/konductor/compare/v0.3.0...v0.4.0) (2026-03-22)
 
 
