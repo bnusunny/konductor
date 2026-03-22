@@ -24,6 +24,8 @@ const TRANSITIONS: &[(&str, &str)] = &[
     ("executing", "executed"),
     ("executed", "complete"),
     ("complete", "shipped"),
+    // shipped can start a new phase
+    ("shipped", "initialized"),
     // blocked can transition back to idle states
     ("blocked", "initialized"),
     ("blocked", "planned"),
@@ -151,13 +153,20 @@ pub fn init_state(name: &str, phase: &str, phases_total: i64) -> Result<Konducto
 pub fn transition(step: &str, phase: Option<&str>) -> Result<KonductorState, String> {
     let mut state = read_state()?;
     let current = state.current.as_ref().ok_or("No current state found")?;
-    let current_step = current.step.as_deref().unwrap_or("unknown");
-    validate_transition(current_step, step)?;
+    let current_step = current.step.as_deref().unwrap_or("unknown").to_string();
+    validate_transition(&current_step, step)?;
 
     let current = state.current.as_mut().unwrap();
     current.step = Some(step.to_string());
     current.status = Some("idle".to_string());
     if let Some(p) = phase {
+        if current_step == "shipped" {
+            if let Some(progress) = state.progress.as_mut() {
+                progress.phases_complete = Some(progress.phases_complete.unwrap_or(0) + 1);
+                progress.current_phase_plans = Some(0);
+                progress.current_phase_plans_complete = Some(0);
+            }
+        }
         current.phase = Some(p.to_string());
     }
 
@@ -261,6 +270,7 @@ mod tests {
         assert!(validate_transition("blocked", "initialized").is_ok());
         assert!(validate_transition("blocked", "planned").is_ok());
         assert!(validate_transition("blocked", "executed").is_ok());
+        assert!(validate_transition("shipped", "initialized").is_ok());
     }
 
     #[test]
@@ -268,7 +278,6 @@ mod tests {
         assert!(validate_transition("initialized", "executed").is_err());
         assert!(validate_transition("planned", "complete").is_err());
         assert!(validate_transition("executed", "planned").is_err());
-        assert!(validate_transition("shipped", "initialized").is_err());
         assert!(validate_transition("executing", "planned").is_err());
     }
 
