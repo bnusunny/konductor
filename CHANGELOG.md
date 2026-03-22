@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.1](https://github.com/bnusunny/konductor/compare/v0.5.0...v0.5.1) (2026-03-22)
+
+
+### Bug Fixes
+
+* add [@konductor](https://github.com/konductor) to agent tools array for MCP tool availability ([#31](https://github.com/bnusunny/konductor/issues/31)) ([de8d47a](https://github.com/bnusunny/konductor/commit/de8d47ad339ccd197813badf57489cda2f6fe63f))
+* **ci:** add environment for npm trusted publishing ([83f1400](https://github.com/bnusunny/konductor/commit/83f14005c7d3e4b21005f3e25d64389ae60e248d))
+* **ci:** install npm@latest for OIDC trusted publishing support ([4a3b450](https://github.com/bnusunny/konductor/commit/4a3b45005247e293eb5a538226000fded6514c7e))
+* **ci:** use npm OIDC publish without registry-url to avoid dummy token ([6a67f35](https://github.com/bnusunny/konductor/commit/6a67f35336a87b17bd1a53e24f86d19250c25368))
+
 ## [0.5.0](https://github.com/bnusunny/konductor/compare/v0.4.1...v0.5.0) (2026-03-22)
 
 
