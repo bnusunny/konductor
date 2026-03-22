@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/bnusunny/konductor/compare/v0.7.4...v0.8.0) (2026-03-22)
+
+
+### Features
+
+* steering hooks with tool call ledger, stuck detection, and workflow validation ([#46](https://github.com/bnusunny/konductor/issues/46)) ([58431ab](https://github.com/bnusunny/konductor/commit/58431ab31ef3c78f1a7d99fa762c40048fb7bd04))
+
 ## [0.7.4](https://github.com/bnusunny/konductor/compare/v0.7.3...v0.7.4) (2026-03-22)
 
 
