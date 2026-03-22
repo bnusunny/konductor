@@ -72,7 +72,7 @@ async function main() {
   fs.chmodSync(dest, 0o755);
   console.log("konductor binary installed.");
 
-  // Install agents, skills, and hooks to ~/.kiro/
+  // Install agents and skills to ~/.kiro/
   installKiroAssets();
 }
 
@@ -99,7 +99,6 @@ function installKiroAssets() {
   const assets = [
     { src: "agents", dest: "agents" },
     { src: "skills", dest: "skills" },
-    { src: "hooks", dest: "hooks" },
   ];
 
   for (const { src, dest } of assets) {

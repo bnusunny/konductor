@@ -63,9 +63,8 @@ cd ..
 
 | Component | Path | Description |
 |-----------|------|-------------|
-| Agents | `agents/*.json` | Orchestrator and subagent configs |
+| Agents | `agents/*.json` | Orchestrator and subagent configs (includes hook configuration) |
 | Skills | `skills/konductor-*/` | Skill instructions for each command |
-| Hooks | `hooks/konductor-hooks.json` | Hook configuration |
 | Binary | `bin/konductor` | Unified binary (MCP server + hook processor) |
 
 ## Requirements

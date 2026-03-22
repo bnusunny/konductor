@@ -52,22 +52,15 @@ TARGET="$TMP/.kiro"
 # Directory structure
 assert_dir_exists "$TARGET/agents" "agents dir created"
 assert_dir_exists "$TARGET/skills" "skills dir created"
-assert_dir_exists "$TARGET/hooks" "hooks dir created"
 assert_dir_exists "$TARGET/bin" "bin dir created"
 
 # Agents
 assert_file_exists "$TARGET/agents/konductor.json" "main agent installed"
 assert_file_exists "$TARGET/agents/konductor-executor.json" "executor agent installed"
 
-# Agents reference hooks
-assert_file_contains "$TARGET/agents/konductor.json" '"PostToolUse"' "main agent has PostToolUse hook"
-assert_file_contains "$TARGET/agents/konductor-executor.json" '"PostToolUse"' "executor agent has PostToolUse hook"
-
-# Hooks
-assert_file_exists "$TARGET/hooks/konductor-hooks.json" "hooks config installed"
-assert_file_contains "$TARGET/hooks/konductor-hooks.json" "konductor hook" "hooks use 'konductor hook' command"
-assert_file_contains "$TARGET/hooks/konductor-hooks.json" "PostToolUse" "hooks include PostToolUse"
-assert_file_contains "$TARGET/hooks/konductor-hooks.json" "PreToolUse" "hooks include PreToolUse"
+# Agents have hooks inline
+assert_file_contains "$TARGET/agents/konductor.json" '"postToolUse"' "main agent has postToolUse hook"
+assert_file_contains "$TARGET/agents/konductor-executor.json" '"postToolUse"' "executor agent has postToolUse hook"
 
 # Skills
 assert_dir_exists "$TARGET/skills/konductor-init" "init skill installed"
@@ -98,7 +91,6 @@ TARGET="$TMP/.kiro"
 
 assert_dir_exists "$TARGET" "local .kiro dir created"
 assert_file_exists "$TARGET/agents/konductor.json" "agent installed locally"
-assert_file_exists "$TARGET/hooks/konductor-hooks.json" "hooks installed locally"
 assert_file_exists "$TARGET/bin/konductor" "binary installed locally"
 assert_executable "$TARGET/bin/konductor" "local binary is executable"
 

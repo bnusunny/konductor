@@ -1,110 +1,119 @@
 # Hook System
 
-Konductor includes a hook system that tracks file modifications and blocks destructive commands. The same `konductor` binary handles hooks via the `hook` subcommand.
+Konductor includes a steering hook system inspired by [Strands-style just-in-time guidance](https://strandsagents.com/blog/steering-accuracy-beats-prompts-workflows/). Instead of front-loading all instructions into prompts, hooks observe what the agent is doing and provide targeted feedback at decision points. The same `konductor` binary handles hooks via the `hook` subcommand.
 
 ## Configuration
 
-Hooks are configured in `.kiro/hooks/konductor-hooks.json`:
+Hooks are configured inline in each agent's JSON config (e.g. `.kiro/agents/konductor.json`):
 
 ```json
 {
-  "hooks": [
-    {
-      "event": "PostToolUse",
-      "matcher": "write",
-      "command": "konductor hook",
-      "timeout_ms": 2000
-    },
-    {
-      "event": "PreToolUse",
-      "matcher": "shell",
-      "command": "konductor hook",
-      "timeout_ms": 1000
-    }
-  ]
+  "hooks": {
+    "preToolUse": [
+      {
+        "matcher": "*",
+        "command": "konductor hook",
+        "timeout_ms": 1000
+      }
+    ],
+    "postToolUse": [
+      {
+        "matcher": "*",
+        "command": "konductor hook",
+        "timeout_ms": 2000
+      }
+    ]
+  }
 }
 ```
 
+Both hooks use the `"*"` matcher to intercept all tool calls (built-in and MCP).
+
+## Tool Call Ledger (PostToolUse)
+
+Every tool call is recorded to an append-only JSONL ledger:
+
+```
+.konductor/.tracking/ledger.jsonl
+```
+
+Each line is a JSON object with:
+
+- `tool_name` — the tool that was called
+- `input_summary` — compact summary (file path for read/write, command for shell)
+- `success` — whether the tool succeeded
+- `output_summary` — last few lines of shell output (shell only)
+
+The ledger uses `O_APPEND` writes which are atomic on POSIX, making it safe for concurrent hook processes (e.g. parallel subagents).
+
 ## File Tracking (PostToolUse)
 
-Every time a file is written by an agent, the hook appends the file path to a tracking log:
+In addition to the ledger, file writes are tracked in:
 
 ```
 .konductor/.tracking/modified-files.log
 ```
 
-This log records all files modified during execution, useful for:
+## Steering Hooks (PreToolUse)
 
-- Reviewing what changed during a phase
-- Debugging unexpected modifications
-- Generating commit scopes
+PreToolUse hooks can block tool execution (exit code 2) and return feedback to the LLM via STDERR. Konductor uses this for four types of steering:
 
-The tracking directory is created automatically if it doesn't exist.
+### 1. Destructive Command Blocking
 
-## Destructive Command Blocking (PreToolUse)
-
-Before any shell command executes, the hook checks it against a list of destructive patterns. If a match is found, the command is **blocked** and the hook exits with code 2.
-
-### Blocked Patterns
+Shell commands are checked against destructive patterns (case-insensitive):
 
 | Pattern | Reason |
 |---------|--------|
-| `rm -rf /` | Filesystem destruction |
-| `rm -rf /*` | Filesystem destruction |
-| `rm -rf ~` | Home directory destruction |
-| `drop table` | Database destruction |
-| `drop database` | Database destruction |
-| `truncate table` | Data loss |
-| `git push --force origin main` | Force push to main |
-| `git push --force origin master` | Force push to master |
-| `git push -f origin main` | Force push to main |
-| `git push -f origin master` | Force push to master |
+| `rm -rf /`, `rm -rf ~` | Filesystem destruction |
+| `drop table`, `drop database` | Database destruction |
+| `git push --force origin main` | Force push to main/master |
 | `git reset --hard origin` | History destruction |
-| `mkfs.` | Disk formatting |
-| `dd if=/dev/zero` | Disk overwrite |
-| `> /dev/sda` | Disk overwrite |
+| `mkfs.`, `dd if=/dev/zero` | Disk destruction |
 
-!!! note
-    Pattern matching is case-insensitive. `DROP TABLE users` and `drop table users` are both blocked.
+### 2. State Protection
 
-### What's Allowed
+Direct writes to `.konductor/state.toml` (via `write` tool or shell commands like `sed`, `echo >`) are blocked. Agents must use MCP tools (`state_get`, `state_transition`, etc.) instead.
 
-These commands are **not** blocked:
+### 3. Stuck Detection
 
-- `rm src/temp.rs` — removing specific files is fine
-- `git push origin feature-branch` — pushing to non-main branches is fine
-- `git push --force origin feature-branch` — force push to feature branches is fine
-- `git reset --hard HEAD~1` — local resets are fine
+Tracks consecutive writes to the same file. After 5 consecutive writes without any shell command in between, the write is blocked with guidance:
+
+> "You may be stuck in a loop. Stop and reconsider: read the error output, try a different approach, or ask the user."
+
+The counter resets when the agent runs a shell command or writes to a different file.
+
+### 4. Workflow Validation
+
+Reads the tool call ledger to enforce pipeline rules:
+
+- **Plan file gating**: Writing to `.konductor/phases/*/plans/*.md` is blocked unless the ledger shows a prior `state_get`, `state_transition`, or `state_init` call.
+- **Test-before-complete**: Calling `state_transition` with `step: "complete"` is blocked unless the ledger shows a prior shell command matching a test/lint pattern.
+
+Test patterns are configurable in `.konductor/config.toml`:
+
+```toml
+[hooks]
+test_patterns = ["test", "pytest", "cargo test", "npm test", "go test", "mvn test", "gradle test", "jest", "vitest", "ruff", "lint", "eslint", "clippy", "golangci-lint"]
+```
 
 ## How It Works
 
 ```
-Agent wants to run shell command
+Agent calls any tool
         │
         ▼
   PreToolUse hook fires
         │
-        ▼
-  konductor hook reads event from stdin
+        ├── Destructive command? → BLOCK + feedback
+        ├── Direct state.toml write? → BLOCK + feedback
+        ├── Stuck (5+ writes to same file)? → BLOCK + feedback
+        ├── Workflow violation? → BLOCK + feedback
+        └── All checks pass → exit 0 (allow)
+
+        ... tool executes ...
+
+  PostToolUse hook fires
         │
-        ▼
-  Is it a shell command?
-   ├── No → exit 0 (allow)
-   └── Yes → check against destructive patterns
-        ├── Not destructive → exit 0 (allow)
-        └── Destructive → stderr message + exit 2 (block)
-```
-
-## Checking the Tracking Log
-
-To see what files were modified during execution:
-
-```bash
-cat .konductor/.tracking/modified-files.log
-```
-
-To see unique files:
-
-```bash
-sort -u .konductor/.tracking/modified-files.log
+        ├── Record tool call to ledger.jsonl
+        └── If write tool → append path to modified-files.log
 ```

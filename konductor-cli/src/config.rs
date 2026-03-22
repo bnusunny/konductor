@@ -14,6 +14,8 @@ pub struct Config {
     pub git: GitConfig,
     #[serde(default = "FeaturesConfig::default")]
     pub features: FeaturesConfig,
+    #[serde(default = "HooksConfig::default")]
+    pub hooks: HooksConfig,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -82,6 +84,30 @@ impl Default for FeaturesConfig {
             verifier: true,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct HooksConfig {
+    #[serde(default = "default_test_patterns")]
+    pub test_patterns: Vec<String>,
+}
+
+impl Default for HooksConfig {
+    fn default() -> Self {
+        Self { test_patterns: default_test_patterns() }
+    }
+}
+
+fn default_test_patterns() -> Vec<String> {
+    [
+        "test", "pytest", "cargo test", "npm test", "npx test",
+        "go test", "mvn test", "gradle test", "gradlew test",
+        "jest", "vitest", "mocha", "junit",
+        "ruff", "lint", "eslint", "golangci-lint", "checkstyle", "clippy",
+    ]
+    .iter()
+    .map(|s| s.to_string())
+    .collect()
 }
 
 pub fn read_config() -> Result<Config, String> {

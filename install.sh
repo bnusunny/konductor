@@ -121,7 +121,7 @@ verify_checksum() {
 echo "Installing Konductor ($SCOPE scope) to $TARGET_DIR..."
 
 # Create target directories with permission check
-if ! mkdir -p "$TARGET_DIR/agents" "$TARGET_DIR/skills" "$TARGET_DIR/hooks" "$TARGET_DIR/bin" 2>/dev/null; then
+if ! mkdir -p "$TARGET_DIR/agents" "$TARGET_DIR/skills" "$TARGET_DIR/bin" 2>/dev/null; then
   echo "✗ Failed to create directory $TARGET_DIR — check permissions"
   echo "  Try: sudo bash install.sh $*"
   exit 1
@@ -156,12 +156,6 @@ if [[ -d "$SCRIPT_DIR/skills" ]]; then
       fi
     fi
   done
-fi
-
-# Copy hooks
-if [[ -f "$SCRIPT_DIR/hooks/konductor-hooks.json" ]]; then
-  echo "Installing hooks..."
-  safe_cp "$SCRIPT_DIR/hooks/konductor-hooks.json" "$TARGET_DIR/hooks/konductor-hooks.json"
 fi
 
 # Install konductor binary (unified: mcp server + hook processor)
