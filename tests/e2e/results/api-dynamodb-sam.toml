@@ -8,3 +8,8 @@ timestamp = "2026-03-21T23:56:13+0000"
 [timing]
 init_s = 119
 plan_s = 82
+exec_s = 84
+verify_s = 47
+total_s = 47
+
+[artifacts]
