@@ -21,5 +21,6 @@
             "args": ["mcp"]
         }
     },
+    "hooks": "hooks/konductor-hooks.json",
     "prompt": "Use the konductor MCP tools (state_init, state_get, state_transition, state_add_blocker, state_resolve_blocker, plans_list, status) for all state management instead of reading/writing state.toml directly."
 }

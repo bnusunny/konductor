@@ -7,5 +7,6 @@
         "file://.konductor/requirements.md",
         "file://.konductor/phases/*/plans/*.md"
     ],
+    "hooks": "hooks/konductor-hooks.json",
     "prompt": ""
 }
