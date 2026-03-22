@@ -27,20 +27,6 @@ curl -fsSL https://konductor.cloud/install | bash -s -- --force
 !!! note
     By default, the installer skips files that already exist to preserve your customizations. Use `--force` to overwrite everything.
 
-## Via npm
-
-```bash
-npm install -g konductor
-```
-
-Or run without installing:
-
-```bash
-npx konductor mcp
-```
-
-Requires Node.js 16+. The npm package automatically downloads the correct platform binary.
-
 ## From Source
 
 ```bash
