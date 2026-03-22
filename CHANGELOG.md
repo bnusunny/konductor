@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.4](https://github.com/bnusunny/konductor/compare/v0.7.3...v0.7.4) (2026-03-22)
+
+
+### Bug Fixes
+
+* hooks field must be a map keyed by event type ([#43](https://github.com/bnusunny/konductor/issues/43)) ([7d873d3](https://github.com/bnusunny/konductor/commit/7d873d3b16f45d0bb94465a27fd31c05cc2428bd))
+
 ## [0.7.3](https://github.com/bnusunny/konductor/compare/v0.7.2...v0.7.3) (2026-03-22)
 
 
