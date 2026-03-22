@@ -8,5 +8,6 @@
         "file://.konductor/phases/*/plans/*.md",
         "file://.kiro/steering/**/*.md"
     ],
+    "hooks": "hooks/konductor-hooks.json",
     "prompt": ""
 }
