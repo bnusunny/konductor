@@ -33,6 +33,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install npm with OIDC publish support
+        run: npm install -g npm@latest
+
       - name: Sync version from version.txt
         run: node scripts/sync-version.js
         working-directory: npm
