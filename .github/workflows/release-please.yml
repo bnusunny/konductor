@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -18,5 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: googleapis/release-please-action@v4
+        id: release
         with:
           release-type: simple
+      - name: Trigger build-release workflow
+        if: ${{ steps.release.outputs.release_created }}
+        run: gh workflow run build-release.yml -f tag=${{ steps.release.outputs.tag_name }}
+        env:
+          GH_TOKEN: ${{ github.token }}
