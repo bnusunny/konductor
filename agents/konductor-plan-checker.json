@@ -17,19 +17,21 @@
         "file://.konductor/requirements.md",
         "file://.konductor/phases/*/plans/*.md"
     ],
-    "hooks": [
-        {
-            "event": "PostToolUse",
-            "matcher": "write",
-            "command": "konductor hook",
-            "timeout_ms": 2000
-        },
-        {
-            "event": "PreToolUse",
-            "matcher": "shell",
-            "command": "konductor hook",
-            "timeout_ms": 1000
-        }
-    ],
+    "hooks": {
+        "preToolUse": [
+            {
+                "matcher": "shell",
+                "command": "konductor hook",
+                "timeout_ms": 1000
+            }
+        ],
+        "postToolUse": [
+            {
+                "matcher": "write",
+                "command": "konductor hook",
+                "timeout_ms": 2000
+            }
+        ]
+    },
     "prompt": ""
 }
