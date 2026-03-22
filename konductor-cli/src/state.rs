@@ -117,6 +117,37 @@ pub fn validate_transition(from: &str, to: &str) -> Result<(), String> {
     }
 }
 
+pub fn init_state(name: &str, phase: &str, phases_total: i64) -> Result<KonductorState, String> {
+    let now = Utc::now().to_rfc3339();
+    let state = KonductorState {
+        project: Some(Project {
+            name: Some(name.to_string()),
+            initialized: Some(now.clone()),
+        }),
+        current: Some(Current {
+            phase: Some(phase.to_string()),
+            step: Some("initialized".to_string()),
+            status: Some("idle".to_string()),
+            plan: Some(String::new()),
+            wave: Some(0),
+        }),
+        progress: Some(Progress {
+            phases_total: Some(phases_total),
+            phases_complete: Some(0),
+            current_phase_plans: Some(0),
+            current_phase_plans_complete: Some(0),
+        }),
+        metrics: Some(Metrics {
+            last_activity: Some(now),
+            total_agent_sessions: Some(1),
+        }),
+        blockers: Vec::new(),
+        release: None,
+    };
+    write_state(&state)?;
+    Ok(state)
+}
+
 pub fn transition(step: &str, phase: Option<&str>) -> Result<KonductorState, String> {
     let mut state = read_state()?;
     let current = state.current.as_ref().ok_or("No current state found")?;
