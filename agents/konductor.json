@@ -1,8 +1,20 @@
 {
     "name": "konductor",
     "description": "Spec-driven development orchestrator. Manages project initialization, phase planning, execution, verification, and shipping. Use @k-plan, @k-exec, @k-verify, @k-next, @k-status, or other prompts to trigger commands.",
-    "tools": ["read", "write", "shell", "code", "@konductor"],
-    "allowedTools": ["read", "write", "shell", "code", "@konductor"],
+    "tools": [
+        "read",
+        "write",
+        "shell",
+        "code",
+        "@konductor"
+    ],
+    "allowedTools": [
+        "read",
+        "write",
+        "shell",
+        "code",
+        "@konductor"
+    ],
     "resources": [
         "skill://.kiro/skills/konductor-*/SKILL.md",
         "file://.kiro/steering/**/*.md",
@@ -11,16 +23,35 @@
     ],
     "toolsSettings": {
         "subagent": {
-            "availableAgents": ["konductor-*"],
-            "trustedAgents": ["konductor-*"]
+            "availableAgents": [
+                "konductor-*"
+            ],
+            "trustedAgents": [
+                "konductor-*"
+            ]
         }
     },
     "mcpServers": {
         "konductor": {
             "command": "konductor",
-            "args": ["mcp"]
+            "args": [
+                "mcp"
+            ]
         }
     },
-    "hooks": "hooks/konductor-hooks.json",
+    "hooks": [
+        {
+            "event": "PostToolUse",
+            "matcher": "write",
+            "command": "konductor hook",
+            "timeout_ms": 2000
+        },
+        {
+            "event": "PreToolUse",
+            "matcher": "shell",
+            "command": "konductor hook",
+            "timeout_ms": 1000
+        }
+    ],
     "prompt": "Use the konductor MCP tools (state_init, state_get, state_transition, state_add_blocker, state_resolve_blocker, plans_list, status) for all state management instead of reading/writing state.toml directly."
 }

@@ -1,12 +1,35 @@
 {
     "name": "konductor-plan-checker",
     "description": "Validates execution plans for coverage, sizing, dependencies, and completeness. Fixes issues in-place.",
-    "tools": ["read", "write", "shell", "code"],
-    "allowedTools": ["read", "write", "shell", "code"],
+    "tools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
+    "allowedTools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
     "resources": [
         "file://.konductor/requirements.md",
         "file://.konductor/phases/*/plans/*.md"
     ],
-    "hooks": "hooks/konductor-hooks.json",
+    "hooks": [
+        {
+            "event": "PostToolUse",
+            "matcher": "write",
+            "command": "konductor hook",
+            "timeout_ms": 2000
+        },
+        {
+            "event": "PreToolUse",
+            "matcher": "shell",
+            "command": "konductor hook",
+            "timeout_ms": 1000
+        }
+    ],
     "prompt": ""
 }

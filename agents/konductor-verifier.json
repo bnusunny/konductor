@@ -1,13 +1,36 @@
 {
     "name": "konductor-verifier",
     "description": "Post-execution verification. Performs 3-level check (exists, substantive, wired) on all artifacts and key links.",
-    "tools": ["read", "write", "shell", "code"],
-    "allowedTools": ["read", "write", "shell", "code"],
+    "tools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
+    "allowedTools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
     "resources": [
         "file://.konductor/requirements.md",
         "file://.konductor/phases/*/plans/*.md",
         "file://.kiro/steering/**/*.md"
     ],
-    "hooks": "hooks/konductor-hooks.json",
+    "hooks": [
+        {
+            "event": "PostToolUse",
+            "matcher": "write",
+            "command": "konductor hook",
+            "timeout_ms": 2000
+        },
+        {
+            "event": "PreToolUse",
+            "matcher": "shell",
+            "command": "konductor hook",
+            "timeout_ms": 1000
+        }
+    ],
     "prompt": ""
 }
