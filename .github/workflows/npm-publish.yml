@@ -20,6 +20,7 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: npm
     if: >-
       (github.event_name == 'workflow_dispatch') ||
       (github.event.workflow_run.conclusion == 'success')
