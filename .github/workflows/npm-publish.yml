@@ -31,13 +31,12 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: '22'
 
       - name: Sync version from version.txt
         run: node scripts/sync-version.js
         working-directory: npm
 
-      - name: Publish to npm with provenance
+      - name: Publish to npm with OIDC trusted publishing
         run: npm publish --access public --provenance
         working-directory: npm
