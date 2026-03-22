@@ -5,6 +5,14 @@
   "bin": {
     "konductor": "bin/konductor"
   },
+  "files": [
+    "bin/",
+    "scripts/",
+    "agents/",
+    "skills/",
+    "hooks/",
+    "README.md"
+  ],
   "scripts": {
     "postinstall": "node scripts/postinstall.js"
   },

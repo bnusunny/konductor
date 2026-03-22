@@ -71,6 +71,44 @@ async function main() {
   fs.writeFileSync(dest, binary);
   fs.chmodSync(dest, 0o755);
   console.log("konductor binary installed.");
+
+  // Install agents, skills, and hooks to ~/.kiro/
+  installKiroAssets();
+}
+
+function copyDirSync(src, dest, force) {
+  if (!fs.existsSync(src)) return;
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirSync(srcPath, destPath, force);
+    } else if (force || !fs.existsSync(destPath)) {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+function installKiroAssets() {
+  const home = process.env.HOME || process.env.USERPROFILE;
+  if (!home) return;
+  const kiroDir = path.join(home, ".kiro");
+  const pkgRoot = path.join(__dirname, "..");
+
+  const assets = [
+    { src: "agents", dest: "agents" },
+    { src: "skills", dest: "skills" },
+    { src: "hooks", dest: "hooks" },
+  ];
+
+  for (const { src, dest } of assets) {
+    const srcDir = path.join(pkgRoot, src);
+    if (fs.existsSync(srcDir)) {
+      copyDirSync(srcDir, path.join(kiroDir, dest), false);
+      console.log(`Installed ${src} to ${path.join(kiroDir, dest)}`);
+    }
+  }
 }
 
 main().catch((err) => {
