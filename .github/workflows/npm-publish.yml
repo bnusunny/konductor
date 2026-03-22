@@ -1,0 +1,42 @@
+name: Publish npm Package
+
+on:
+  workflow_run:
+    workflows: ["Build Release Binaries"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v0.4.1)'
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event.workflow_run.conclusion == 'success')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Sync version from version.txt
+        run: node scripts/sync-version.js
+        working-directory: npm
+
+      - name: Publish to npm with provenance
+        run: npm publish --access public --provenance
+        working-directory: npm

@@ -33,6 +33,12 @@ curl -fsSL https://konductor.cloud/install | bash
 
 Installs to `~/.kiro/` (global) or `./.kiro/` (local project). Use `--force` to overwrite existing files.
 
+Or install via npm:
+
+```bash
+npm install -g konductor
+```
+
 ## Quick Start
 
 Start the Konductor orchestrator:
