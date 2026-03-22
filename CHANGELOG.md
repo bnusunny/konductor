@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/bnusunny/konductor/compare/v0.7.2...v0.7.3) (2026-03-22)
+
+
+### Bug Fixes
+
+* inline hooks config in agent definitions ([#41](https://github.com/bnusunny/konductor/issues/41)) ([83dfd58](https://github.com/bnusunny/konductor/commit/83dfd58ee1e2e0831765658cd11cf75073fdcf23))
+
 ## [0.7.2](https://github.com/bnusunny/konductor/compare/v0.7.1...v0.7.2) (2026-03-22)
 
 
