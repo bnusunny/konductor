@@ -55,29 +55,12 @@ If any are missing, report the error and stop.
 
 ## Step 6: Write Initial State
 
-Write `.konductor/state.toml`:
-```toml
-[project]
-name = "{project name from project.md}"
-initialized = {current ISO timestamp}
+Call the `state_init` MCP tool with:
+- `name`: the project name from project.md
+- `phase`: the first phase identifier from the roadmap
+- `phases_total`: the total number of phases from the roadmap
 
-[current]
-phase = "{first phase from roadmap}"
-step = "initialized"
-status = "idle"
-plan = ""
-wave = 0
-
-[progress]
-phases_total = {count from roadmap}
-phases_complete = 0
-current_phase_plans = 0
-current_phase_plans_complete = 0
-
-[metrics]
-last_activity = {current ISO timestamp}
-total_agent_sessions = 1
-```
+This creates `.konductor/state.toml` with the correct initial structure.
 
 Write `.konductor/config.toml`:
 ```toml

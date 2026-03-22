@@ -65,6 +65,16 @@ pub struct PlansListArgs {
     pub phase: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+pub struct InitArgs {
+    #[schemars(description = "Project name")]
+    pub name: String,
+    #[schemars(description = "First phase identifier (e.g. '01' or '01-auth-system')")]
+    pub phase: String,
+    #[schemars(description = "Total number of phases in the roadmap")]
+    pub phases_total: i64,
+}
+
 // -- MCP Server --
 
 #[derive(Clone)]
@@ -159,6 +169,14 @@ impl KonductorMcp {
         match state::read_state() {
             Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string())),
             Err(e) => tool_error("STATE_NOT_FOUND", &e),
+        }
+    }
+
+    #[tool(description = "Initialize a new project state. Creates .konductor/state.toml with project name, first phase, and phase count.")]
+    async fn state_init(&self, Parameters(args): Parameters<InitArgs>) -> String {
+        match state::init_state(&args.name, &args.phase, args.phases_total) {
+            Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string())),
+            Err(e) => tool_error("INIT_ERROR", &e),
         }
     }
 
