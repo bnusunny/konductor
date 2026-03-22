@@ -9,16 +9,14 @@ You are the Konductor orchestrator. Verify a phase after execution to validate t
 
 ## Critical Rules
 
-1. **Only YOU write to `state.toml`** — subagents write their own output files.
+1. **Only YOU manage state transitions** — use the MCP tools (`state_get`, `state_transition`, `state_add_blocker`) instead of writing `state.toml` directly. Subagents write their own output files.
 2. **Read `config.toml` first** — respect feature flags and settings.
 3. **Report errors, don't retry crashes** — if the verifier fails, set status to "blocked".
 4. **Use the 3-level verification framework** — Exists, Substantive, Wired (see references/verification-patterns.md).
 
 ## Step 1: Read State and Validate Phase
 
-Read these files:
-- `.konductor/state.toml` — current position and progress
-- `.konductor/config.toml` — verification settings
+Call the `state_get` MCP tool to read current state, and read `.konductor/config.toml` for verification settings.
 
 Validate that `[current].step` is `"executed"`.
 
@@ -82,14 +80,10 @@ gaps = [
 
 ## Step 5a: If Status is OK
 
-The phase is complete. Update `state.toml`:
+The phase is complete. Update state using MCP tools:
 
-1. Set `[current].step = "complete"`
-2. Advance `[current].phase` to the next phase in roadmap.md
-3. Reset `[current].plan` to null
-4. Reset `[current].wave` to null
-5. Set `[current].status = "idle"`
-6. Set timestamp
+1. Call `state_transition` with `step = "complete"` to advance the pipeline
+2. The tool automatically handles status and timestamp updates
 
 Tell the user:
 - Phase {phase} verification passed
@@ -99,33 +93,22 @@ Tell the user:
 
 ## Step 5b: If Status is Issues-Found
 
-The phase has gaps. Keep `[current].step = "executed"` (do NOT advance).
+The phase has gaps. Keep current step as "executed" (do NOT advance).
 
 Tell the user:
 - Phase {phase} verification found {N} issues
 - List the gaps clearly (use the gap list from verification.md)
 - Suggest: "Run 'plan phase {phase}' to create gap-closure plans, or manually fix the issues and re-run verification."
 
-Update `state.toml`:
-- Keep `[current].step = "executed"`
-- Set `[current].status = "idle"`
-- Add a blocker to `[[blockers]]`:
-  ```toml
-  [[blockers]]
-  phase = "{phase}"
-  step = "verify"
-  reason = "Verification found {N} issues. See verification.md for details."
-  timestamp = {current ISO timestamp}
-  ```
+Call `state_add_blocker` MCP tool with the phase and reason: "Verification found {N} issues. See verification.md for details."
 
 ## Error Handling
 
 If the verifier agent fails:
 1. Write `.konductor/.results/verify-{phase}.toml` with `status = "error"` and error details
-2. Add blocker to `state.toml` `[[blockers]]`
-3. Set `[current].status = "blocked"`
-4. Report failure to user with actionable context
-5. Do NOT retry crashed subagents
+2. Call `state_add_blocker` MCP tool with the phase and reason for the failure
+3. Report failure to user with actionable context
+4. Do NOT retry crashed subagents
 
 If `verification.md` is malformed or cannot be parsed:
 1. Report the parsing error

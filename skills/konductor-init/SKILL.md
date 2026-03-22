@@ -10,7 +10,7 @@ You are the Konductor orchestrator. Initialize a new spec-driven development pro
 ## Step 1: Check Existing State
 
 Check if `.konductor/` directory already exists.
-- If it exists and contains `state.toml`, warn the user: "A Konductor project already exists here. Reinitializing will overwrite project.md, requirements.md, and roadmap.md. Proceed? (y/n)"
+- If it exists, call the `state_get` MCP tool. If it returns valid state, warn the user: "A Konductor project already exists here. Reinitializing will overwrite project.md, requirements.md, and roadmap.md. Proceed? (y/n)"
 - If user declines, stop.
 
 ## Step 2: Create Directory Structure
