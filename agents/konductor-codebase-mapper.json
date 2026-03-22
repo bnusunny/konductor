@@ -1,9 +1,32 @@
 {
     "name": "konductor-codebase-mapper",
     "description": "Analyzes existing codebases for brownfield projects. Maps file structure, tech stack, patterns, conventions, testing, and integrations.",
-    "tools": ["read", "write", "shell", "code"],
-    "allowedTools": ["read", "write", "shell", "code"],
+    "tools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
+    "allowedTools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
     "resources": [],
-    "hooks": "hooks/konductor-hooks.json",
+    "hooks": [
+        {
+            "event": "PostToolUse",
+            "matcher": "write",
+            "command": "konductor hook",
+            "timeout_ms": 2000
+        },
+        {
+            "event": "PreToolUse",
+            "matcher": "shell",
+            "command": "konductor hook",
+            "timeout_ms": 1000
+        }
+    ],
     "prompt": ""
 }

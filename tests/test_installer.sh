@@ -60,8 +60,8 @@ assert_file_exists "$TARGET/agents/konductor.json" "main agent installed"
 assert_file_exists "$TARGET/agents/konductor-executor.json" "executor agent installed"
 
 # Agents reference hooks
-assert_file_contains "$TARGET/agents/konductor.json" '"hooks"' "main agent references hooks"
-assert_file_contains "$TARGET/agents/konductor-executor.json" '"hooks"' "executor agent references hooks"
+assert_file_contains "$TARGET/agents/konductor.json" '"PostToolUse"' "main agent has PostToolUse hook"
+assert_file_contains "$TARGET/agents/konductor-executor.json" '"PostToolUse"' "executor agent has PostToolUse hook"
 
 # Hooks
 assert_file_exists "$TARGET/hooks/konductor-hooks.json" "hooks config installed"
