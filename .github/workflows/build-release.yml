@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -100,3 +101,13 @@ jobs:
           file: konductor-cli/target/${{ matrix.target }}/release/${{ matrix.name }}.sha256
           asset_name: ${{ matrix.name }}.sha256
           tag: ${{ env.RELEASE_TAG }}
+
+  trigger-npm-publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger npm publish workflow
+        run: gh workflow run npm-publish.yml -f tag=${{ env.RELEASE_TAG }}
+        env:
+          GH_TOKEN: ${{ github.token }}
