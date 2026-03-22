@@ -39,19 +39,21 @@
             ]
         }
     },
-    "hooks": [
-        {
-            "event": "PostToolUse",
-            "matcher": "write",
-            "command": "konductor hook",
-            "timeout_ms": 2000
-        },
-        {
-            "event": "PreToolUse",
-            "matcher": "shell",
-            "command": "konductor hook",
-            "timeout_ms": 1000
-        }
-    ],
+    "hooks": {
+        "preToolUse": [
+            {
+                "matcher": "shell",
+                "command": "konductor hook",
+                "timeout_ms": 1000
+            }
+        ],
+        "postToolUse": [
+            {
+                "matcher": "write",
+                "command": "konductor hook",
+                "timeout_ms": 2000
+            }
+        ]
+    },
     "prompt": "Use the konductor MCP tools (state_init, state_get, state_transition, state_add_blocker, state_resolve_blocker, plans_list, status) for all state management instead of reading/writing state.toml directly."
 }
