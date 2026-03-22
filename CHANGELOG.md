@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/bnusunny/konductor/compare/v0.4.1...v0.5.0) (2026-03-22)
+
+
+### Features
+
+* add npm distribution with trusted publishing ([9402fd0](https://github.com/bnusunny/konductor/commit/9402fd09ab5ba39de147a358c9dbac5c1788353b))
+* add npm distribution with trusted publishing ([#29](https://github.com/bnusunny/konductor/issues/29)) ([d1c04cc](https://github.com/bnusunny/konductor/commit/d1c04cc92299425d6461cc682ef671c8d3de4412))
+
 ## [0.4.1](https://github.com/bnusunny/konductor/compare/v0.4.0...v0.4.1) (2026-03-22)
 
 
