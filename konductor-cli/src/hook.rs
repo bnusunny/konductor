@@ -59,23 +59,46 @@ fn handle_post_tool_use(event: &HookEvent) {
 }
 
 fn handle_pre_tool_use(event: &HookEvent) {
-    if event.tool_name.as_deref() != Some("shell") {
-        return;
-    }
+    match event.tool_name.as_deref() {
+        Some("shell") => {
+            let command = event
+                .tool_input
+                .as_ref()
+                .and_then(|v| v.get("command"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
 
-    let command = event
-        .tool_input
-        .as_ref()
-        .and_then(|v| v.get("command"))
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+            if is_destructive(command) {
+                eprintln!(
+                    "BLOCKED by konductor: destructive command detected: {}",
+                    command
+                );
+                process::exit(2);
+            }
 
-    if is_destructive(command) {
-        eprintln!(
-            "BLOCKED by konductor: destructive command detected: {}",
-            command
-        );
-        process::exit(2);
+            if modifies_state_file(command) {
+                eprintln!(
+                    "BLOCKED by konductor: direct state.toml modification detected. Use MCP tools (state_init, state_get, state_transition) instead."
+                );
+                process::exit(2);
+            }
+        }
+        Some("write") => {
+            let path = event
+                .tool_input
+                .as_ref()
+                .and_then(|v| v.get("path"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+
+            if path.ends_with("state.toml") && path.contains(".konductor") {
+                eprintln!(
+                    "BLOCKED by konductor: direct state.toml write detected. Use MCP tools (state_init, state_get, state_transition) instead."
+                );
+                process::exit(2);
+            }
+        }
+        _ => {}
     }
 }
 
@@ -98,6 +121,14 @@ fn is_destructive(command: &str) -> bool {
         "> /dev/sda",
     ];
     patterns.iter().any(|p| lower.contains(p))
+}
+
+fn modifies_state_file(command: &str) -> bool {
+    let state_indicators = ["state.toml"];
+    let write_commands = ["sed ", "awk ", "echo ", "cat >", "cat>>", "tee ", "printf ", "> ", ">> "];
+    let has_state = state_indicators.iter().any(|s| command.contains(s));
+    let has_write = write_commands.iter().any(|w| command.contains(w));
+    has_state && has_write
 }
 
 #[cfg(test)]

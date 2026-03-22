@@ -45,6 +45,11 @@
                 "matcher": "shell",
                 "command": "konductor hook",
                 "timeout_ms": 1000
+            },
+            {
+                "matcher": "write",
+                "command": "konductor hook",
+                "timeout_ms": 1000
             }
         ],
         "postToolUse": [
