@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/bnusunny/konductor/compare/v0.7.1...v0.7.2) (2026-03-22)
+
+
+### Bug Fixes
+
+* allow state transition from shipped to initialized ([#39](https://github.com/bnusunny/konductor/issues/39)) ([8bef9aa](https://github.com/bnusunny/konductor/commit/8bef9aaf79ce836e0d2596494c0194c2d2ee2fe3))
+
 ## [0.7.1](https://github.com/bnusunny/konductor/compare/v0.7.0...v0.7.1) (2026-03-22)
 
 
