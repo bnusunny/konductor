@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/bnusunny/konductor/compare/v0.3.0...v0.4.0) (2026-03-22)
+
+
+### Features
+
+* add integration tests, E2E pipeline, benchmarks, and self-improvement loop ([#23](https://github.com/bnusunny/konductor/issues/23)) ([b29cc98](https://github.com/bnusunny/konductor/commit/b29cc98102cb0cb52c94477675a3c1780384237f))
+* multi-project benchmarks, SAM deployment pipeline, self-improvement loop ([1ff757d](https://github.com/bnusunny/konductor/commit/1ff757d8d36882ff8e4bd8ab4a9f8bd10a0c68cd))
+
+
+### Bug Fixes
+
+* use correct hook binary path for local installs ([#26](https://github.com/bnusunny/konductor/issues/26)) ([df1f656](https://github.com/bnusunny/konductor/commit/df1f656fba95200ca4fc4292a698f09a1ed08af9))
+
 ## [0.3.0](https://github.com/bnusunny/konductor/compare/v0.2.1...v0.3.0) (2026-03-21)
 
 
