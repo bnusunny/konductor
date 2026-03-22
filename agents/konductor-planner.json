@@ -22,14 +22,14 @@
     "hooks": {
         "preToolUse": [
             {
-                "matcher": "shell",
+                "matcher": "*",
                 "command": "konductor hook",
                 "timeout_ms": 1000
             }
         ],
         "postToolUse": [
             {
-                "matcher": "write",
+                "matcher": "*",
                 "command": "konductor hook",
                 "timeout_ms": 2000
             }

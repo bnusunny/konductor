@@ -227,8 +227,6 @@ EOF
 │   ├── konductor-exec/
 │   ├── konductor-verify/
 │   └── ...
-├── hooks/
-│   └── konductor-hooks.json      # Hook configuration
 ├── bin/
 │   └── konductor                # Unified binary (mcp server + hook processor)
 └── steering/

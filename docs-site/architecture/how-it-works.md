@@ -66,9 +66,8 @@ konductor hook   # Process hook events from stdin
 
 ```
 .kiro/                          # Kiro configuration
-├── agents/                     # Agent definitions (includes MCP server config)
+├── agents/                     # Agent definitions (includes hooks and MCP server config)
 ├── skills/                     # Skill instructions
-├── hooks/                      # Hook configuration
 └── bin/
     └── konductor               # Unified binary (mcp server + hook processor)
 

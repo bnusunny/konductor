@@ -57,6 +57,28 @@ verifier = true
 !!! tip
     Set `verifier = false` to skip verification and move directly from executed to complete. Useful for rapid iteration.
 
+## `[hooks]`
+
+Configure steering hook behavior.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `test_patterns` | string[] | *(see below)* | Patterns matched against shell commands to detect test/lint runs. Used by the test-before-complete workflow rule. |
+
+Default test patterns:
+
+```toml
+[hooks]
+test_patterns = [
+  "test", "pytest", "cargo test", "npm test", "npx test",
+  "go test", "mvn test", "gradle test", "gradlew test",
+  "jest", "vitest", "mocha", "junit",
+  "ruff", "lint", "eslint", "golangci-lint", "checkstyle", "clippy",
+]
+```
+
+Setting `test_patterns` completely replaces the defaults. Patterns are matched case-insensitively as substrings of the shell command.
+
 ## Complete Example
 
 ```toml
@@ -74,6 +96,9 @@ branching_strategy = "none"
 research = true
 plan_checker = true
 verifier = true
+
+[hooks]
+test_patterns = ["test", "pytest", "cargo test", "npm test", "go test", "mvn test", "lint", "clippy"]
 ```
 
 ## Defaults
