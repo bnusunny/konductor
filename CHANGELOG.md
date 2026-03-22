@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/bnusunny/konductor/compare/v0.7.0...v0.7.1) (2026-03-22)
+
+
+### Bug Fixes
+
+* wire hooks config to all agent definitions ([#37](https://github.com/bnusunny/konductor/issues/37)) ([e157091](https://github.com/bnusunny/konductor/commit/e15709128ac93508fe41614c10452fbd8dec46d6))
+
 ## [0.7.0](https://github.com/bnusunny/konductor/compare/v0.6.0...v0.7.0) (2026-03-22)
 
 
