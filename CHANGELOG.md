@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/bnusunny/konductor/compare/v0.6.0...v0.7.0) (2026-03-22)
+
+
+### Features
+
+* npm install now installs agents, skills, and hooks to ~/.kiro/ ([#36](https://github.com/bnusunny/konductor/issues/36)) ([80e1c87](https://github.com/bnusunny/konductor/commit/80e1c874d2f5bc96ec66cff8549a6b6138692bb1))
+
+
+### Bug Fixes
+
+* trigger npm-publish workflow after binaries are built ([#34](https://github.com/bnusunny/konductor/issues/34)) ([4e66971](https://github.com/bnusunny/konductor/commit/4e669710c804339949caf24bb1fe712d80b61478))
+
 ## [0.6.0](https://github.com/bnusunny/konductor/compare/v0.5.1...v0.6.0) (2026-03-22)
 
 
