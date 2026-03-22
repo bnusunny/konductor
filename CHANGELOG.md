@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/bnusunny/konductor/compare/v0.5.1...v0.6.0) (2026-03-22)
+
+
+### Features
+
+* add state_init MCP tool, remove LLM-generated TOML from init skill ([#32](https://github.com/bnusunny/konductor/issues/32)) ([362159f](https://github.com/bnusunny/konductor/commit/362159ff58abd3568d9371d7a31aa76be207bf91))
+
 ## [0.5.1](https://github.com/bnusunny/konductor/compare/v0.5.0...v0.5.1) (2026-03-22)
 
 
