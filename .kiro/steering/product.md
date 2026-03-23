@@ -1,4 +1,4 @@
-# Product — Konductor v0.7.x
+# Product — Konductor v0.8.x
 
 ## Purpose
 Spec-driven development orchestrator for Kiro CLI. Manages project initialization, phase planning, execution, verification, and shipping through an MCP server and hook processor. Includes self-improvement capabilities via synthetic project benchmarking and AWS deployment verification.
@@ -21,3 +21,5 @@ Spec-driven development orchestrator for Kiro CLI. Manages project initializatio
 - npm distribution (`npx konductor` or `npm install -g konductor`)
 - Installer script with checksum verification and idempotent operation
 - MkDocs documentation site
+- Rust-based E2E test harness using Agent Client Protocol (ACP)
+- Statically linked Linux binaries (musl)
