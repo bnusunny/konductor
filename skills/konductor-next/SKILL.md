@@ -50,7 +50,7 @@ Then run the **Planning Pipeline**:
    - requirements.md
    - roadmap.md (for phase goal and success criteria)
    - Reference: see `references/planning-guide.md` in the konductor-plan skill
-   The planner will write plan files to `.konductor/phases/{phase}/plans/`.
+   The planner will first write `.konductor/phases/{phase}/design.md` with the phase-level architecture, then write plan files with `## Design` sections to `.konductor/phases/{phase}/plans/`.
    Wait for completion.
 
 3. **Check Plans** (if `config.toml` `features.plan_checker = true`):
@@ -59,7 +59,18 @@ Then run the **Planning Pipeline**:
    - requirements.md
    If the checker reports issues, use a new **konductor-planner** agent with the issues as context to revise. Then re-check. Maximum 3 iterations.
 
-4. **Update State**:
+4. **Design Review** (if `config.toml` `features.design_review = true`):
+   Use the **konductor-design-reviewer** agent to review the design. Provide it with:
+   - `.konductor/phases/{phase}/design.md`
+   - All plan files in `.konductor/phases/{phase}/plans/`
+   - requirements.md, roadmap.md, project.md
+   The reviewer writes `.konductor/phases/{phase}/review.md` with a verdict (pass/revise/reject) and issues.
+   If verdict is "revise": spawn a new **konductor-planner** with the review feedback to revise design.md and affected plans, then re-run the reviewer. Maximum 2 iterations.
+   Present the review summary to the user. Ask: "Approve plans for execution? (approve / reject)".
+   On approve: proceed to step 5.
+   On reject: stop. Do not advance state.
+
+5. **Update State**:
    Write `.konductor/.results/plan-{phase}.toml`:
    ```toml
    step = "plan"
