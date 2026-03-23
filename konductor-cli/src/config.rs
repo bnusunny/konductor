@@ -130,6 +130,21 @@ pub fn read_config_from(path: &Path) -> Result<Config, String> {
         .map_err(|e| format!("Failed to parse config.toml: {e}"))
 }
 
+pub fn write_config(config: &Config) -> Result<(), String> {
+    write_config_to(config, Path::new(CONFIG_FILE))
+}
+
+pub fn write_config_to(config: &Config, path: &Path) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create config directory: {e}"))?;
+    }
+    let content = toml::to_string_pretty(config)
+        .map_err(|e| format!("Failed to serialize config: {e}"))?;
+    fs::write(path, content)
+        .map_err(|e| format!("Failed to write config.toml: {e}"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

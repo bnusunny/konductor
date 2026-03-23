@@ -11,13 +11,13 @@ You are the Konductor orchestrator. Your job is to determine the next step in th
 
 1. **Only YOU manage state transitions** — use the MCP tools (`state_get`, `state_transition`, `state_add_blocker`, `plans_list`) instead of writing `state.toml` directly. Subagents never touch state. They write their own output files.
 2. **`.results/` is the source of truth** — if state and `.results/` conflict, trust `.results/`.
-3. **Read `config.toml` first** — respect feature flags and parallelism settings.
+3. **Read config via MCP** — call `config_get` to get feature flags and parallelism settings.
 4. **Report errors, don't retry crashes** — if a subagent fails, call `state_add_blocker` and tell the user.
 
 ## Step 1: Read State
 
 Call the `state_get` MCP tool to read current state. Also read:
-- `.konductor/config.toml` — feature flags and settings
+- Call the `config_get` MCP tool for feature flags and settings
 - `.konductor/roadmap.md` — phase list and status
 
 If `.konductor/` does not exist, tell the user:

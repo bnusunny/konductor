@@ -70,9 +70,12 @@ Shell commands are checked against destructive patterns (case-insensitive):
 | `git reset --hard origin` | History destruction |
 | `mkfs.`, `dd if=/dev/zero` | Disk destruction |
 
-### 2. State Protection
+### 2. State and Config Protection
 
-Direct writes to `.konductor/state.toml` (via `write` tool or shell commands like `sed`, `echo >`) are blocked. Agents must use MCP tools (`state_get`, `state_transition`, etc.) instead.
+Direct writes to `.konductor/state.toml` and `.konductor/config.toml` (via `write` tool or shell commands like `sed`, `echo >`) are blocked. Agents must use MCP tools instead:
+
+- **State:** `state_init`, `state_get`, `state_transition`, `state_add_blocker`, `state_resolve_blocker`
+- **Config:** `config_get`, `config_init`
 
 ### 3. Stuck Detection
 
@@ -105,7 +108,7 @@ Agent calls any tool
   PreToolUse hook fires
         │
         ├── Destructive command? → BLOCK + feedback
-        ├── Direct state.toml write? → BLOCK + feedback
+        ├── Direct state.toml/config.toml write? → BLOCK + feedback
         ├── Stuck (5+ writes to same file)? → BLOCK + feedback
         ├── Workflow violation? → BLOCK + feedback
         └── All checks pass → exit 0 (allow)

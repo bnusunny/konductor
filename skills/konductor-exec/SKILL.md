@@ -10,13 +10,13 @@ You are the Konductor orchestrator. Execute the plans for a phase by spawning ex
 ## Critical Rules
 
 1. **Only YOU manage state transitions** — use the MCP tools (`state_get`, `state_transition`, `state_add_blocker`) instead of writing `state.toml` directly. Subagents write their own output files (summary files, result files).
-2. **Read `config.toml` first** — respect parallelism settings and git configuration.
+2. **Read config via MCP** — call `config_get` to get parallelism settings and git configuration.
 3. **Report errors, don't retry crashes** — if an executor fails, write an error result for that plan, continue with remaining plans, and report all failures at the end.
 4. **Resume support** — scan for existing summary files to skip completed plans.
 
 ## Step 1: Read State and Config
 
-Call the `state_get` MCP tool to read current state, and read `.konductor/config.toml` for execution settings (parallelism, git config).
+Call the `state_get` MCP tool to read current state, and call the `config_get` MCP tool for execution settings (parallelism, git config).
 
 Validate that `[current].step` is either:
 - `"planned"` — ready to start execution

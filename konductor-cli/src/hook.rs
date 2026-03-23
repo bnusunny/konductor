@@ -133,6 +133,13 @@ fn handle_pre_tool_use(event: &HookEvent) {
                 process::exit(2);
             }
 
+            if modifies_config_file(command) {
+                eprintln!(
+                    "BLOCKED by konductor: direct config.toml modification detected. Use MCP tools (config_get, config_init) instead."
+                );
+                process::exit(2);
+            }
+
             // Running a shell command means the agent is doing something new — reset tracker
             reset_write_tracker(cwd);
         }
@@ -147,6 +154,13 @@ fn handle_pre_tool_use(event: &HookEvent) {
             if path.ends_with("state.toml") && path.contains(".konductor") {
                 eprintln!(
                     "BLOCKED by konductor: direct state.toml write detected. Use MCP tools (state_init, state_get, state_transition) instead."
+                );
+                process::exit(2);
+            }
+
+            if path.ends_with("config.toml") && path.contains(".konductor") {
+                eprintln!(
+                    "BLOCKED by konductor: direct config.toml write detected. Use MCP tools (config_get, config_init) instead."
                 );
                 process::exit(2);
             }
@@ -392,6 +406,14 @@ fn modifies_state_file(command: &str) -> bool {
     let has_state = state_indicators.iter().any(|s| command.contains(s));
     let has_write = write_commands.iter().any(|w| command.contains(w));
     has_state && has_write
+}
+
+fn modifies_config_file(command: &str) -> bool {
+    let config_indicators = ["config.toml"];
+    let write_commands = ["sed ", "awk ", "echo ", "cat >", "cat>>", "tee ", "printf ", "> ", ">> "];
+    let has_config = config_indicators.iter().any(|s| command.contains(s));
+    let has_write = write_commands.iter().any(|w| command.contains(w));
+    has_config && has_write
 }
 
 #[cfg(test)]

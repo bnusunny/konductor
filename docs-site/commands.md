@@ -102,7 +102,8 @@ These tools are used by the orchestrator agent for deterministic state managemen
 | `state_resolve_blocker` | Resolve a blocker for a phase |
 | `plans_list` | List plans for a phase with wave, type, dependencies, and completion status |
 | `status` | Get a structured status report with progress, blockers, and config |
-| `config_get` | Read current configuration from `config.toml` |
+| `config_get` | Read current configuration from `config.toml` (with defaults applied) |
+| `config_init` | Create `config.toml` with defaults (idempotent) |
 
 ### Error Responses
 
