@@ -110,47 +110,24 @@ If an executor fails (crashes, times out, or reports errors):
 
 After each wave completes, track progress (completed plans count and percentage) for reporting.
 
-## Step 6: Code Review
+## Step 6: Code Review (if enabled)
 
-After all waves complete, perform a code review of the changes made during execution.
+If `config.toml` `features.code_review = true`:
 
-### 6.1: Gather Changes
+Spawn a **konductor-code-reviewer** agent. Provide it with:
+- `.konductor/.tracking/modified-files.log` (list of changed files)
+- All `*-summary.md` files from `.konductor/phases/{phase}/plans/`
+- The phase name and plan files for context
+- Instructions: review all modified source files, run tests and linting, do NOT fix any issues — only report them with file, line, description, and severity (minor/significant). Write findings to `.konductor/phases/{phase}/code-review.md`.
 
-Read the modified files log at `.konductor/.tracking/modified-files.log` to get the list of all files changed during execution. Also read the `*-summary.md` files from each completed plan to understand what was implemented.
+Wait for the reviewer to complete. Read `code-review.md`.
 
-### 6.2: Review Each Changed File
+**If the review reports issues:**
+1. Spawn a **konductor-executor** agent with the issues from `code-review.md` as context. Instruct it to fix all reported issues and commit with `fix({phase}): code review fixes`.
+2. Re-run the **konductor-code-reviewer** to verify the fixes.
+3. Maximum 3 review-fix iterations. If issues remain after 3 iterations, call `state_add_blocker` with a summary of remaining issues and report to user.
 
-For each modified source file (skip generated files, lock files, and binary artifacts):
-
-1. Read the file
-2. Check for:
-   - **Correctness**: Does the code match what the plan and summary describe?
-   - **Error handling**: Are errors handled, not silently swallowed?
-   - **Security**: No hardcoded secrets, no SQL injection, no path traversal, proper input validation
-   - **Duplication**: Is there copy-pasted or near-identical logic that should be extracted into a shared function/module?
-   - **Performance**: Unnecessary allocations in hot paths, N+1 queries, missing pagination, unbounded loops, blocking calls in async code
-   - **Dead code**: No unused imports, unreachable branches, or commented-out blocks left behind
-   - **Consistency**: Does the code follow the patterns already established in the codebase?
-   - **TODOs/FIXMEs**: Any left behind that should have been resolved?
-
-### 6.3: Run Tests and Linting
-
-Run the project's test suite and linter to catch issues the executors may have missed:
-
-- Run tests (e.g., `cargo test`, `npm test`, `pytest`, `go test ./...`)
-- Run linter if available (e.g., `cargo clippy`, `ruff check`, `eslint`, `golangci-lint run`)
-- Note any failures or warnings
-
-### 6.4: Fix or Report Issues
-
-**For minor issues** (unused imports, missing error handling, formatting):
-- Fix them directly
-- Commit with message: `fix({phase}): code review cleanup`
-
-**For significant issues** (logic bugs, security problems, architectural concerns):
-- Do NOT fix them silently
-- Report them to the user with the file, line, and description
-- Call `state_add_blocker` if the issues are severe enough to block the phase
+**If no issues remain:** Proceed to Step 7.
 
 ## Step 7: Set Executed State
 
