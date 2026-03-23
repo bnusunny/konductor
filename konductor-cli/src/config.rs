@@ -76,6 +76,8 @@ pub struct FeaturesConfig {
     pub verifier: bool,
     #[serde(default = "default_true")]
     pub design_review: bool,
+    #[serde(default = "default_true")]
+    pub code_review: bool,
 }
 
 impl Default for FeaturesConfig {
@@ -85,6 +87,7 @@ impl Default for FeaturesConfig {
             plan_checker: true,
             verifier: true,
             design_review: true,
+            code_review: true,
         }
     }
 }
@@ -145,6 +148,7 @@ mod tests {
         assert!(config.features.plan_checker);
         assert!(config.features.verifier);
         assert!(config.features.design_review);
+        assert!(config.features.code_review);
     }
 
     #[test]
@@ -166,6 +170,7 @@ research = false
 plan_checker = true
 verifier = false
 design_review = false
+code_review = false
 "#).unwrap();
         let config = read_config_from(f.path()).unwrap();
         assert_eq!(config.general.default_model, "gpt-4");
@@ -176,6 +181,7 @@ design_review = false
         assert!(config.features.plan_checker);
         assert!(!config.features.verifier);
         assert!(!config.features.design_review);
+        assert!(!config.features.code_review);
     }
 
     #[test]

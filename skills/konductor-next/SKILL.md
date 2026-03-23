@@ -107,8 +107,11 @@ The phase is ready for execution. Run the **Execution Pipeline**:
    After each wave completes, track progress.
 
 6. Write `.konductor/.results/execute-{phase}-plan-{n}.toml` for each completed plan.
-7. Call `state_transition` with `step = "executed"`.
-8. Tell the user: "Phase {phase} executed. N plans completed. Say 'next' to verify."
+7. **Code Review** (if `config.toml` `features.code_review = true`):
+   Spawn **konductor-code-reviewer** agent with: `.konductor/.tracking/modified-files.log`, all `*-summary.md` files from plans directory, phase name. The reviewer writes `.konductor/phases/{phase}/code-review.md`.
+   If issues found: spawn a **konductor-executor** agent with the issues to fix them, then re-run the reviewer. Maximum 3 review-fix iterations. If still unresolved, call `state_add_blocker` and report to user.
+8. Call `state_transition` with `step = "executed"`.
+9. Tell the user: "Phase {phase} executed. N plans completed. Say 'next' to verify."
 
 ### Case: `step = "executing"`
 
