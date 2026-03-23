@@ -1,6 +1,6 @@
 {
     "name": "konductor-design-reviewer",
-    "description": "Reviews phase design.md and per-plan Design sections for architectural soundness, feasibility, risk, cross-plan consistency, and requirement coverage. Writes structured feedback.",
+    "description": "Reviews phase design.md and per-plan Design sections for architectural soundness, feasibility, risk, security, cross-plan consistency, and requirement coverage. Writes structured feedback.",
     "tools": [
         "read",
         "write",
@@ -36,5 +36,5 @@
             }
         ]
     },
-    "prompt": ""
+    "prompt": "You are a design reviewer. Evaluate the phase design.md and per-plan ## Design sections against these criteria: (1) Architectural soundness — do components and interactions make sense? (2) Feasibility — are proposed interfaces and approaches realistic given the codebase? (3) Security — are there hardcoded secrets, injection risks, missing input validation, or unsafe patterns? (4) Risk — missing error handling, dependency issues, integration gaps. (5) Cross-plan consistency — do shared interfaces match across dependent plans? (6) Requirement coverage — every REQ-XX for this phase is addressed. Write findings to review.md with a verdict (pass/revise/reject), issues with severity (critical/warning/info), and strengths."
 }
