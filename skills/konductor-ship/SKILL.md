@@ -60,23 +60,37 @@ Read `.konductor/.results/verify-integration.toml`.
 - Tell the user: "Integration issues found. Fix these before shipping: {list of issues}. You can use 'exec' to re-run specific plans or fix manually."
 - Stop here
 
-## Step 5: Create Release Tag
+## Step 5: Create Release Branch and PR
 
 Read `.konductor/project.md` to extract:
 - Project name
 - Version (if specified, or use "v1.0.0" as default)
 
-Create a git tag:
+Create a feature branch, rebase onto the default branch, and push a PR:
+
 ```bash
-git tag -a {version} -m "Release {version}: {project name} complete
+# Ensure we're up to date
+git fetch origin
 
-All {phases_total} phases implemented and verified.
+# Determine default branch
+DEFAULT_BRANCH=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
 
-Generated with Konductor orchestrator"
+# Create release branch
+git checkout -b release/{version}
+
+# Rebase onto default branch
+git rebase origin/$DEFAULT_BRANCH
+
+# Push and create PR
+git push -u origin release/{version}
 ```
 
+Create a pull request targeting the default branch with:
+- **Title:** `release: {version} — {project name}`
+- **Body:** Summary of all phases completed, verification status, and milestone info
+
 Tell the user:
-> "Created git tag: {version}"
+> "Created release branch and PR for {version}. Review and merge to ship."
 
 ## Step 6: Archive Project State
 
@@ -133,11 +147,11 @@ Tell the user:
 - {phases_total} phases completed
 - {total_agent_sessions} agent sessions
 - Verified: All integration checks passed
-- Tagged: {version}
+- Release PR: {pr_url}
 - Archived: .konductor/milestones/{version}/
 
 ## Next Steps
-- Push the git tag: `git push origin {version}`
+- Review and merge the release PR
 - Review the milestone summary: `.konductor/milestones/{version}/summary.md`
 - Consider deploying your project
 
@@ -152,9 +166,9 @@ If phases are incomplete, do NOT proceed with shipping. Report the gap and stop.
 **Verification failures:**
 If the verifier finds issues, do NOT create tags or archives. Report issues and stop.
 
-**Git tag already exists:**
-If the tag already exists, warn the user:
-> "Tag {version} already exists. Use a different version or delete the existing tag first."
+**Release branch already exists:**
+If the branch `release/{version}` already exists, warn the user:
+> "Branch release/{version} already exists. Use a different version or delete the existing branch first."
 
 Then stop.
 
