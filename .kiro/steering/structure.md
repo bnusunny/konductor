@@ -38,9 +38,14 @@ konductor/
 │   │   └── sync-version.js # Syncs version from version.txt
 │   └── README.md
 ├── tests/
-│   ├── e2e/                # E2E pipeline tests + benchmarks
-│   │   ├── run.sh          # Full pipeline test
-│   │   ├── benchmark.sh    # Benchmark harness
+│   ├── acp-harness/        # Rust ACP test harness (replaces bash E2E)
+│   │   ├── Cargo.toml      # Test crate with agent-client-protocol dep
+│   │   ├── src/
+│   │   │   └── lib.rs      # Shared test helpers (ACP client setup)
+│   │   └── tests/
+│   │       ├── integration/ # MCP tool tests via ACP
+│   │       └── e2e/        # Full pipeline tests via ACP
+│   ├── e2e/                # Legacy bash tests (benchmark/deploy only)
 │   │   ├── compare.sh      # Baseline comparison
 │   │   ├── improve.sh      # Self-improvement loop
 │   │   ├── deploy.sh       # SAM deployment

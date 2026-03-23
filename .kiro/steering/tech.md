@@ -1,15 +1,17 @@
-# Tech — Konductor v0.7.x
+# Tech — Konductor v0.8.x
 
 ## Languages
-- Rust (konductor-cli binary, MCP server)
+- Rust (konductor-cli binary, MCP server, ACP test harness)
 - Bash (benchmark harness, deployment scripts, E2E tests, installer)
 - Python (synthetic test projects — generated code targets)
 - JavaScript/Node.js (npm package wrapper, postinstall script)
 
 ## Frameworks & Tools
 - rmcp — MCP server framework
+- agent-client-protocol — ACP client for Rust test harness
 - clap — CLI argument parsing
 - chrono — timestamp handling
+- tokio — async runtime (MCP server + test harness)
 - AWS SAM CLI — IaC deployment (`sam validate`, `sam build`, `sam deploy`, `sam delete`)
 - pytest — test runner for generated Python code
 - ruff — Python linter for generated code quality checks
@@ -30,3 +32,4 @@
 - Shell scripts for automation (benchmark, deploy, compare, improve, install)
 - Per-project isolation in benchmark runs (temp directories)
 - version.txt as single source of truth for version number
+- Static musl linking for Linux binaries (no glibc dependency)
