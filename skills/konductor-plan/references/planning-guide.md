@@ -76,6 +76,16 @@ Each plan is a markdown file with TOML frontmatter and a structured body.
 - `must_haves.artifacts`: Files that must exist
 - `must_haves.key_links`: Wiring checks (A imports B, C calls D)
 
+**Body sections (in order):**
+- `## Goal`: What this plan delivers
+- `## Design`: Technical design for this plan's implementation
+  - `### Approach`: Why this approach, what alternatives were considered
+  - `### Key Interfaces`: Function signatures, type definitions, API contracts introduced or modified by this plan
+  - `### Error Handling`: How errors are handled within this plan's scope
+  - `### Trade-offs`: What was traded off and why
+- `## Dependencies` (optional): Interface context from plans this one depends on
+- `## Tasks`: Ordered list of implementation tasks
+
 **Complete example:**
 ```markdown
 +++
@@ -98,6 +108,33 @@ key_links = ["User model imported by auth routes", "bcrypt used in user.rs"]
 
 ## Goal
 Create the User data model and database schema to support user registration.
+
+## Design
+
+### Approach
+Use a single User struct with private password_hash field. Bcrypt for hashing (industry standard, built-in salt). Migration creates the users table directly — no ORM migration framework needed at this stage.
+
+### Key Interfaces
+```rust
+pub struct User {
+    pub id: Uuid,
+    pub email: String,
+    password_hash: String,
+    pub created_at: DateTime<Utc>,
+}
+
+impl User {
+    pub fn new(email: String, password: String) -> Result<Self, AuthError>;
+    pub fn verify_password(&self, password: &str) -> bool;
+}
+```
+
+### Error Handling
+`User::new` returns `AuthError::WeakPassword` if password doesn't meet requirements, `AuthError::HashError` if bcrypt fails. Callers handle these via the Result type.
+
+### Trade-offs
+- Bcrypt over argon2: simpler dependency, sufficient for this use case, slightly slower but acceptable
+- No email uniqueness enforcement at struct level — handled by DB unique constraint
 
 ## Tasks
 
@@ -129,6 +166,44 @@ Create the User data model and database schema to support user registration.
 - **verify:** Compilation succeeds, User is referenced
 - **done:** Registration route can create User instances
 ```
+
+## Phase-Level Design Document
+
+Before writing individual plans, the planner must produce `.konductor/phases/{phase}/design.md`. This document captures the overall technical design for the phase, giving reviewers and executors a holistic view.
+
+**Contents:**
+1. **Overview** — one paragraph summarizing the architectural approach for this phase
+2. **Components** — which modules, files, or services are involved and their responsibilities
+3. **Interactions** — how components communicate (function calls, API requests, event flows)
+4. **Key Decisions** — architectural choices that span multiple plans, with rationale
+5. **Shared Interfaces** — type definitions, function signatures, or API contracts used across multiple plans
+
+**Template:**
+```markdown
+# Design: Phase {phase} — {name}
+
+## Overview
+{One paragraph: what is being built and the high-level approach}
+
+## Components
+- **{component}**: {responsibility}
+- **{component}**: {responsibility}
+
+## Interactions
+{Describe how components interact — which calls which, data flow}
+
+## Key Decisions
+
+### {Decision title}
+**Choice:** {what was decided}
+**Rationale:** {why}
+**Alternatives considered:** {what else was evaluated}
+
+## Shared Interfaces
+{Type definitions, function signatures, or API contracts referenced by multiple plans}
+```
+
+Individual plan `## Design` sections should reference this document for shared context rather than duplicating it. For example: "See design.md Key Decisions for the choice of bcrypt over argon2."
 
 ## Goal-Backward Methodology
 
@@ -253,7 +328,9 @@ Use this interface in Task 2 when implementing the login handler.
 
 Before finalizing plans, verify:
 
+- [ ] Phase-level `design.md` exists with overview, components, interactions, key decisions, and shared interfaces
 - [ ] Every plan has valid TOML frontmatter
+- [ ] Every plan has a `## Design` section with Approach, Key Interfaces, Error Handling, and Trade-offs
 - [ ] Wave numbers form a valid DAG (no cycles)
 - [ ] Each plan has 2-5 tasks
 - [ ] Each task has files, action, verify, and done

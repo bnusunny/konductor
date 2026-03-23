@@ -1,0 +1,40 @@
+{
+    "name": "konductor-design-reviewer",
+    "description": "Reviews phase design.md and per-plan Design sections for architectural soundness, feasibility, risk, cross-plan consistency, and requirement coverage. Writes structured feedback.",
+    "tools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
+    "allowedTools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
+    "resources": [
+        "file://.konductor/requirements.md",
+        "file://.konductor/roadmap.md",
+        "file://.konductor/project.md",
+        "file://.konductor/phases/*/plans/*.md",
+        "file://.kiro/steering/**/*.md"
+    ],
+    "hooks": {
+        "preToolUse": [
+            {
+                "matcher": "*",
+                "command": "konductor hook",
+                "timeout_ms": 1000
+            }
+        ],
+        "postToolUse": [
+            {
+                "matcher": "*",
+                "command": "konductor hook",
+                "timeout_ms": 2000
+            }
+        ]
+    },
+    "prompt": ""
+}
