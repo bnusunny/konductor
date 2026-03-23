@@ -91,7 +91,7 @@ impl KonductorMcp {
     async fn prompt_init(&self) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            "Initialize this project with Konductor. Discover project goals, generate spec documents, and set up the pipeline. Run the konductor-init skill.",
+            "Initialize this project with Konductor. Detect existing codebase if present, discover project goals through interactive questions, generate spec documents (project.md, requirements.md, roadmap.md), and set up the pipeline. Run the konductor-init skill.",
         )]
     }
 
@@ -99,39 +99,39 @@ impl KonductorMcp {
     async fn prompt_plan(&self, Parameters(args): Parameters<PhaseArgs>) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            format!("Plan phase {} for execution. Research the ecosystem, create execution plans with tasks and acceptance criteria, and validate them. Run the konductor-plan skill.", args.phase),
+            format!("Plan phase {} for execution. Research the ecosystem, create execution plans with tasks and acceptance criteria, validate them, and run design review if enabled. Run the konductor-plan skill.", args.phase),
         )]
     }
 
-    #[prompt(name = "k-exec", description = "Execute the current phase")]
+    #[prompt(name = "k-exec", description = "Execute the plans for the current phase")]
     async fn prompt_exec(&self) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            "Execute the plans for the current phase. Spawn executor subagents to implement each plan following TDD workflow. Run the konductor-exec skill.",
+            "Execute the plans for the current phase. Read state to confirm the phase is planned, spawn executor subagents for each plan by wave, and run code review. Run the konductor-exec skill.",
         )]
     }
 
-    #[prompt(name = "k-verify", description = "Verify the current phase")]
+    #[prompt(name = "k-verify", description = "Verify the current phase after execution")]
     async fn prompt_verify(&self) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            "Verify the current phase after execution. Validate that phase goals were achieved using the 3-level verification framework. Run the konductor-verify skill.",
+            "Verify the current phase after execution. Read state to confirm the phase is executed, then validate that phase goals were achieved using the 3-level verification framework (Exists, Substantive, Wired). Run the konductor-verify skill.",
         )]
     }
 
-    #[prompt(name = "k-ship", description = "Ship and finalize the project")]
+    #[prompt(name = "k-ship", description = "Ship and finalize the project after all phases are complete")]
     async fn prompt_ship(&self) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            "Ship and finalize the project. Verify all phases are complete, run cross-phase integration checks, create git tag, and archive project state. Run the konductor-ship skill.",
+            "Ship and finalize the project. Verify all phases are complete, run cross-phase integration checks, create release branch and PR, and archive project state. Run the konductor-ship skill.",
         )]
     }
 
-    #[prompt(name = "k-next", description = "Advance to the next pipeline step")]
+    #[prompt(name = "k-next", description = "Determine and execute the next pipeline step")]
     async fn prompt_next(&self) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            "Advance to the next step in the Konductor pipeline. Determine what needs to happen next based on current state and execute it. Run the konductor-next skill.",
+            "Determine what needs to happen next based on current state and execute it — planning, execution, verification, or phase advancement. Read state first. Run the konductor-next skill.",
         )]
     }
 
@@ -139,23 +139,23 @@ impl KonductorMcp {
     async fn prompt_status(&self) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            "Show current Konductor project status. Display phase progress, current position, recent activity, blockers, and next steps. Run the konductor-status skill.",
+            "Show current Konductor project status. Call the status MCP tool, then display phase progress, current step, blockers, and next steps. Run the konductor-status skill.",
         )]
     }
 
-    #[prompt(name = "k-discuss", description = "Discuss and set context for a phase")]
+    #[prompt(name = "k-discuss", description = "Discuss and set context for a phase before planning")]
     async fn prompt_discuss(&self, Parameters(args): Parameters<PhaseArgs>) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            format!("Discuss and set context for phase {} before planning. Have a conversation about approach preferences, library choices, architectural trade-offs, and constraints. Run the konductor-discuss skill.", args.phase),
+            format!("Discuss and set context for phase {} before planning. Have a conversation about approach preferences, library choices, architectural trade-offs, and constraints. Decisions are saved to context.md for the planner. Run the konductor-discuss skill.", args.phase),
         )]
     }
 
-    #[prompt(name = "k-map", description = "Analyze and map the existing codebase")]
+    #[prompt(name = "k-map", description = "Analyze and map the existing codebase structure and tech stack")]
     async fn prompt_map(&self) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            "Analyze and map the existing codebase. Scan file structure, tech stack, architecture patterns, testing setup, and integrations. Run the konductor-map-codebase skill.",
+            "Analyze and map the existing codebase. Scan file structure, tech stack, architecture patterns, testing setup, and integrations. Results are written to .kiro/steering/structure.md and .kiro/steering/tech.md. Run the konductor-map-codebase skill.",
         )]
     }
 }
