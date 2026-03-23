@@ -48,6 +48,22 @@ key_links = ["User model imported by auth routes"]
 
 # Plan 01: User Model and Migrations
 
+## Design
+
+### Approach
+Use a `User` struct with bcrypt password hashing. Store in PostgreSQL via the existing `db` module.
+
+### Interfaces
+- `User::new(email, password) -> Result<User>` — creates user with hashed password
+- `User::verify_password(&self, password) -> bool` — checks password against hash
+
+### Dependencies
+- `bcrypt` crate for password hashing
+- Existing `db::Pool` for database connections
+
+### Risks
+- bcrypt cost factor must be tuned for acceptable latency (default 12 is fine for most cases)
+
 ## Goal
 Create the User data model and database schema.
 

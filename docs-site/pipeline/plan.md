@@ -1,31 +1,54 @@
 # Plan
 
-Breaks work into phases with specific tasks, acceptance criteria, and cross-phase regression gates.
+Breaks work into phases with specific tasks, acceptance criteria, and a technical design that gets reviewed before execution.
 
 ## What Happens
 
-1. The `konductor-planner` agent reads your specs and roadmap
-2. Creates detailed phase plans with numbered tasks
-3. Each task includes acceptance criteria and test requirements
-4. A `konductor-plan-checker` validates the plan for completeness
+1. The `konductor-researcher` agent investigates the ecosystem (if `features.research = true`)
+2. The `konductor-planner` agent creates a phase-level `design.md` and detailed execution plans
+3. The `konductor-plan-checker` validates plans for completeness (if `features.plan_checker = true`)
+4. The `konductor-design-reviewer` reviews the architecture (if `features.design_review = true`)
+5. The user is asked to approve or reject the plans before execution proceeds
 
 ## Outputs
 
-Phase files in `.konductor/phases/`:
+Phase files in `.konductor/phases/{phase}/`:
 
 ```
-phases/
-├── phase-01-foundation.md
-├── phase-02-core-features.md
-└── ...
+phases/{phase}/
+├── research.md          # Ecosystem research findings
+├── design.md            # Phase-level architecture
+├── review.md            # Design review verdict and findings
+└── plans/
+    ├── 001-plan.md      # Execution plans with Design sections
+    ├── 002-plan.md
+    └── ...
 ```
 
-Each phase file contains:
+Each plan file contains:
 
+- TOML frontmatter (wave, dependencies, requirements)
 - Phase goals and scope
+- A `## Design` section with technical approach
 - Ordered task list with acceptance criteria
-- Cross-phase regression gates
-- Dependencies between tasks
+
+## Design Review
+
+When `features.design_review = true` (the default), a `konductor-design-reviewer` agent evaluates:
+
+- Architectural soundness of `design.md`
+- Feasibility of per-plan Design sections
+- Cross-plan consistency of shared interfaces
+- Requirement coverage
+- Risk identification (security, error handling, dependencies)
+
+The review produces a verdict:
+
+- **pass** — plans are approved, proceed to execution
+- **revise** — issues found, planner revises and reviewer re-checks (up to 2 iterations)
+- **reject** — fundamental problems, user must intervene
+
+After the review, the user is asked to approve or reject the plans.
 
 ## Usage
 
@@ -33,3 +56,6 @@ Each phase file contains:
 > plan
 > plan phase 01
 ```
+
+!!! tip
+    Set `features.design_review = false` in `config.toml` to skip the review and approval gate.

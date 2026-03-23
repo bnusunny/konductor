@@ -45,17 +45,27 @@ Feature flags to enable or disable pipeline stages.
 |-------|------|---------|-------------|
 | `research` | boolean | `true` | Run ecosystem research before planning |
 | `plan_checker` | boolean | `true` | Validate plans after creation (coverage, sizing, dependencies) |
+| `design_review` | boolean | `true` | Run design review after planning with user approval gate |
+| `code_review` | boolean | `true` | Run automated code review after execution |
 | `verifier` | boolean | `true` | Run 3-level verification after execution |
 
 ```toml
 [features]
 research = true
 plan_checker = true
+design_review = true
+code_review = true
 verifier = true
 ```
 
 !!! tip
     Set `verifier = false` to skip verification and move directly from executed to complete. Useful for rapid iteration.
+
+!!! tip
+    Set `design_review = false` to skip the design review and user approval gate during planning. Plans will be marked as "planned" immediately after validation.
+
+!!! tip
+    Set `code_review = false` to skip automated code review after execution. Useful when you want faster iteration and will review code manually.
 
 ## `[hooks]`
 
@@ -95,6 +105,8 @@ branching_strategy = "none"
 [features]
 research = true
 plan_checker = true
+design_review = true
+code_review = true
 verifier = true
 
 [hooks]
