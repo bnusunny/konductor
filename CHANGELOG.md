@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.10.0](https://github.com/bnusunny/konductor/compare/v0.9.0...v0.10.0) (2026-03-23)
+
+
+### Features
+
+* **phase-06:** static linking, ACP test harness, bash test removal ([#50](https://github.com/bnusunny/konductor/issues/50)) ([7521757](https://github.com/bnusunny/konductor/commit/7521757948671b8813ab73900245e3d2ee82eefd))
+* **phase-07:** add design review step to planning pipeline ([#52](https://github.com/bnusunny/konductor/issues/52)) ([4331540](https://github.com/bnusunny/konductor/commit/4331540d7cd810d00728073942792f202a60bba7))
+* **phase-08:** extract code review into dedicated subagent ([#53](https://github.com/bnusunny/konductor/issues/53)) ([2584229](https://github.com/bnusunny/konductor/commit/25842290d0db4d8e03d0152a55fc414e934236a2))
+* update ship skill to use feature branch + PR workflow ([#54](https://github.com/bnusunny/konductor/issues/54)) ([bbdcf0d](https://github.com/bnusunny/konductor/commit/bbdcf0d02e6782bb807aa4e5ae9d2d040db39ea0))
+
 ## [0.9.0](https://github.com/bnusunny/konductor/compare/v0.8.0...v0.9.0) (2026-03-22)
 
 
