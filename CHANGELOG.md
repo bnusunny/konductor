@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/bnusunny/konductor/compare/v0.10.0...v0.11.0) (2026-03-23)
+
+
+### Features
+
+* route all config access through MCP tools ([#56](https://github.com/bnusunny/konductor/issues/56)) ([37743ea](https://github.com/bnusunny/konductor/commit/37743eac36edf783b1195a4838596617b647971c))
+
 ## [0.10.0](https://github.com/bnusunny/konductor/compare/v0.9.0...v0.10.0) (2026-03-23)
 
 
