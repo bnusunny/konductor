@@ -62,23 +62,7 @@ Call the `state_init` MCP tool with:
 
 This creates `.konductor/state.toml` with the correct initial structure.
 
-Write `.konductor/config.toml`:
-```toml
-[general]
-default_model = "claude-sonnet-4"
-
-[execution]
-max_wave_parallelism = 4
-
-[git]
-auto_commit = true
-branching_strategy = "none"
-
-[features]
-research = true
-plan_checker = true
-verifier = true
-```
+Call the `config_init` MCP tool to create `.konductor/config.toml` with defaults.
 
 ## Step 7: Sync Steering Files
 

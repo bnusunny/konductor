@@ -10,13 +10,13 @@ You are the Konductor orchestrator. Verify a phase after execution to validate t
 ## Critical Rules
 
 1. **Only YOU manage state transitions** — use the MCP tools (`state_get`, `state_transition`, `state_add_blocker`) instead of writing `state.toml` directly. Subagents write their own output files.
-2. **Read `config.toml` first** — respect feature flags and settings.
+2. **Read config via MCP** — call `config_get` to get feature flags and settings.
 3. **Report errors, don't retry crashes** — if the verifier fails, set status to "blocked".
 4. **Use the 3-level verification framework** — Exists, Substantive, Wired (see references/verification-patterns.md).
 
 ## Step 1: Read State and Validate Phase
 
-Call the `state_get` MCP tool to read current state, and read `.konductor/config.toml` for verification settings.
+Call the `state_get` MCP tool to read current state, and call the `config_get` MCP tool for verification settings.
 
 Validate that `[current].step` is `"executed"`.
 

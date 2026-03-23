@@ -10,13 +10,13 @@ You are the Konductor orchestrator. Plan a phase by researching the ecosystem, c
 ## Critical Rules
 
 1. **Only YOU manage state transitions** — use the MCP tools (`state_get`, `state_transition`, `state_add_blocker`) instead of writing `state.toml` directly. Subagents write their own output files.
-2. **Read `config.toml` first** — respect feature flags (research, plan_checker, design_review).
+2. **Read config via MCP** — call `config_get` to get feature flags (research, plan_checker, design_review).
 3. **Report errors, don't retry crashes** — if a subagent fails, set status to "blocked".
 4. **Accept a phase argument** — the user may say "plan phase 01" or "plan phase 01-auth-system". Resolve short form by scanning `.konductor/phases/` directories.
 
 ## Step 1: Validate State
 
-Call the `state_get` MCP tool to read current state, and read `.konductor/config.toml`.
+Call the `state_get` MCP tool to read current state, and call the `config_get` MCP tool to read configuration.
 Validate that the specified phase exists in `.konductor/roadmap.md`.
 Create the phase directory if it doesn't exist:
 ```bash

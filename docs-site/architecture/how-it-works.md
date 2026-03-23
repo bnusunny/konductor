@@ -12,6 +12,7 @@ A local MCP server provides typed prompts and tools over stdio:
 
 - **9 prompts** with Tab-completable shortcuts (`@k-init`, `@k-plan`, etc.) — with typed arguments where needed
 - **State management tools** (`state_get`, `state_transition`, `state_add_blocker`, `state_resolve_blocker`) — eliminates fragile LLM-generated TOML
+- **Config tools** (`config_get`, `config_init`) — typed config access with defaults applied
 - **Query tools** (`plans_list`, `status`) — returns structured JSON instead of requiring the LLM to parse files
 
 Built with [rmcp](https://github.com/modelcontextprotocol/rust-sdk) (official Rust MCP SDK).

@@ -324,6 +324,20 @@ impl KonductorMcp {
             Err(e) => tool_error("INVALID_CONFIG", &e),
         }
     }
+
+    #[tool(description = "Initialize configuration with defaults. Creates .konductor/config.toml if it doesn't exist. Idempotent — returns current config if file already exists.")]
+    async fn config_init(&self) -> String {
+        match config::read_config() {
+            Ok(c) => {
+                // Write (or re-write) with defaults applied for any missing fields
+                if let Err(e) = config::write_config(&c) {
+                    return tool_error("IO_ERROR", &e);
+                }
+                serde_json::to_string_pretty(&c).unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string()))
+            }
+            Err(e) => tool_error("INVALID_CONFIG", &e),
+        }
+    }
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
