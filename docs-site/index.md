@@ -7,7 +7,9 @@
 | 🚀 **Initialize** | Discover goals, generate specs |
 | 🔍 **Research** | Analyze codebase, map patterns |
 | 📋 **Plan** | Break work into phases with tasks |
+| 🔎 **Design Review** | Review architecture before execution |
 | 💻 **Execute** | Implement with TDD workflow |
+| 🧐 **Code Review** | Automated review of code changes |
 | ✅ **Verify** | Validate tests and quality gates |
 | 🚢 **Ship** | Commit, release, move to next phase |
 

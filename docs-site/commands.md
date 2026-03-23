@@ -16,23 +16,23 @@ Creates the `.konductor/` directory with initial state.
 
 ### `@k-plan` — Plan a Phase
 
-Researches the ecosystem, creates execution plans with tasks and acceptance criteria, and validates them.
+Researches the ecosystem, creates execution plans with tasks and acceptance criteria, runs design review, and asks for user approval.
 
 ```
 > @k-plan 01
 ```
 
-Takes a phase number as argument. Creates plan files in `.konductor/phases/{phase}/plans/`.
+Takes a phase number as argument. Creates plan files in `.konductor/phases/{phase}/plans/`, a `design.md` with phase-level architecture, and a `review.md` with design review findings.
 
 ### `@k-exec` — Execute Current Phase
 
-Spawns executor subagents to implement each plan following TDD workflow.
+Spawns executor subagents to implement each plan following TDD workflow, then runs automated code review.
 
 ```
 > @k-exec
 ```
 
-Executes plans wave by wave. Creates summary files for completed plans.
+Executes plans wave by wave. After execution, a code reviewer checks all modified files and reports issues. Creates summary files for completed plans and `code-review.md` with findings.
 
 ### `@k-verify` — Verify Current Phase
 

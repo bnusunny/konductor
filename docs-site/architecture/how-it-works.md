@@ -1,6 +1,6 @@
 # How It Works
 
-Konductor is built on five key components.
+Konductor is built on six key components.
 
 ## Orchestrator Agent
 
@@ -33,7 +33,9 @@ Specialized agents handle specific tasks:
 | `konductor-discoverer` | Interviews users to understand project goals |
 | `konductor-researcher` | Analyzes codebases and documents patterns |
 | `konductor-planner` | Creates detailed phase plans with tasks |
+| `konductor-design-reviewer` | Reviews architecture and design for soundness, feasibility, and risk |
 | `konductor-executor` | Implements code following TDD principles |
+| `konductor-code-reviewer` | Reviews code changes for correctness, security, and quality |
 | `konductor-verifier` | Validates tests and acceptance criteria |
 
 ## Hook System (`konductor hook`)
@@ -62,6 +64,8 @@ konductor mcp    # Start MCP server (stdio transport)
 konductor hook   # Process hook events from stdin
 ```
 
+Linux binaries are statically linked with musl for maximum portability — no glibc dependency required. Prebuilt binaries are available for linux-x64, linux-arm64, darwin-x64, and darwin-arm64.
+
 ## File Layout
 
 ```
@@ -77,5 +81,11 @@ konductor hook   # Process hook events from stdin
 ├── roadmap.md                  # Milestones
 ├── state.toml                  # Pipeline state (managed by MCP tools)
 ├── phases/                     # Phase plans
+│   └── {phase}/
+│       ├── plans/              # Execution plans
+│       ├── design.md           # Phase-level architecture
+│       ├── review.md           # Design review findings
+│       ├── code-review.md      # Code review findings
+│       └── research.md         # Ecosystem research
 └── .results/                   # Execution results
 ```
