@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.0](https://github.com/bnusunny/konductor/compare/v0.11.0...v0.12.0) (2026-03-24)
+
+
+### Features
+
+* Phase 10 — Skill Review & MCP Tool Gaps ([#60](https://github.com/bnusunny/konductor/issues/60)) ([9058f23](https://github.com/bnusunny/konductor/commit/9058f2343505a7c7f4ad5567a2de245d259822b7))
+* **prompts:** audit and improve all 9 MCP prompt messages ([#58](https://github.com/bnusunny/konductor/issues/58)) ([64b14ae](https://github.com/bnusunny/konductor/commit/64b14aecb8110355fe79c9cb42a8e7a3da0785dd))
+
 ## [0.11.0](https://github.com/bnusunny/konductor/compare/v0.10.0...v0.11.0) (2026-03-23)
 
 
