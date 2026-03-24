@@ -151,9 +151,17 @@ Current phase is done. Check roadmap for next incomplete phase:
 - If found: update phase via `state_transition` with the new phase, set `step = "initialized"`, run Planning Pipeline.
 - If all phases complete: tell user "All phases complete! Say 'ship' to finalize."
 
+### Case: `step = "shipped"`
+
+The project has been shipped. Check `.konductor/roadmap.md` for any phases not yet completed.
+
+- If a new phase exists in the roadmap that hasn't been executed: call the `state_advance_phase` MCP tool with the new phase identifier and the updated `phases_total` from the roadmap. This preserves project history (phases_complete, initialized date, metrics, blockers) while starting the new phase. Then run the Planning Pipeline for the new phase.
+- If no new phases exist: tell the user "All phases complete and shipped! To continue, add new phases to roadmap.md and requirements.md, then say 'next' again."
+
 ### Case: `step = "blocked"`
 
-Tell the user about the blocker from the `state_get` response `blockers` list and ask how to proceed.
+Tell the user about the blocker from the `state_get` response `blockers` list. Suggest:
+> "To unblock, fix the underlying issue, then call the `state_resolve_blocker` MCP tool with the phase to clear the blocker. After that, say 'next' to continue."
 
 ## Step 3: Error Handling
 

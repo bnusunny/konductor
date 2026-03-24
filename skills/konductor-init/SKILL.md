@@ -10,7 +10,11 @@ You are the Konductor orchestrator. Initialize a new spec-driven development pro
 ## Step 1: Check Existing State
 
 Check if `.konductor/` directory already exists.
-- If it exists, call the `state_get` MCP tool. If it returns valid state, warn the user: "A Konductor project already exists here. Reinitializing will overwrite project.md, requirements.md, and roadmap.md. Proceed? (y/n)"
+- If it exists, call the `state_get` MCP tool. If it returns valid state:
+  - If `current.step` is `"shipped"`: ask the user: "Project is shipped. Do you want to (a) add a new phase to the existing project, or (b) reinitialize from scratch?"
+    - If (a): ask for the new phase name. Read `.konductor/roadmap.md` to determine the updated `phases_total`. Call the `state_advance_phase` MCP tool with the new phase identifier and updated phases_total. Skip to Step 8 (report success).
+    - If (b): proceed with normal reinitialization below.
+  - Otherwise: warn the user: "A Konductor project already exists here. Reinitializing will overwrite project.md, requirements.md, and roadmap.md. Proceed? (y/n)"
 - If user declines, stop.
 
 ## Step 2: Create Directory Structure

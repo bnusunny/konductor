@@ -38,7 +38,7 @@ Spawn the **konductor-verifier** agent with instructions to perform a cross-phas
 - Check that API contracts are honored
 - Test critical user flows that span multiple phases
 - Look for integration gaps or inconsistencies between phase boundaries
-- Reference: see `references/verification.md` for verification patterns
+- Reference: see `skills/konductor-verify/references/verification-patterns.md` for verification patterns
 
 Provide the verifier with:
 - All phase directories: `.konductor/phases/*/`

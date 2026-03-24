@@ -95,8 +95,9 @@ Last activity: {last_activity_relative} ({last_activity_absolute})
 - `planned` → "Say 'exec' to execute the plans."
 - `executing` → "Execution in progress. Wait for completion or check logs."
 - `executed` → "Say 'next' to verify the phase."
-- `verified` → "Say 'next' to mark phase complete and advance."
 - `complete` → "Phase {n} complete. Say 'next' to move to phase {n+1}."
+- `shipped` → "All phases shipped. Add new phases to roadmap.md or say 'init' to start a new project."
+- `blocked` → "Resolve the blocker with `state_resolve_blocker`, then say 'next'."
 
 ## Error Handling
 
