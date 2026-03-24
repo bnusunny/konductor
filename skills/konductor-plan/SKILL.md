@@ -17,6 +17,11 @@ You are the Konductor orchestrator. Plan a phase by researching the ecosystem, c
 ## Step 1: Validate State
 
 Call the `state_get` MCP tool to read current state, and call the `config_get` MCP tool to read configuration.
+
+Validate that `current.step` is `"initialized"` or `"discussed"`. If not, tell the user:
+> "Phase {phase} is not ready for planning. Current step: {step}. Run 'discuss' or 'init' first."
+Then stop.
+
 Validate that the specified phase exists in `.konductor/roadmap.md`.
 Create the phase directory if it doesn't exist:
 ```bash
@@ -111,6 +116,9 @@ Wait for the reviewer to complete. Verify `review.md` was created.
 2. Instruct it to revise `design.md` and the affected plans in-place
 3. Re-run the **konductor-design-reviewer**
 4. Maximum 2 review-revise iterations. If still "revise" after 2 iterations, proceed to user approval with warnings noted.
+
+**If verdict is "reject":** Stop. Do not advance state. Tell the user:
+> "Design rejected by reviewer. See `.konductor/phases/{phase}/review.md` for details. Fix the fundamental issues and re-run planning."
 
 **Present the review summary to the user.** Ask:
 > "Approve plans for execution? (approve / reject)"

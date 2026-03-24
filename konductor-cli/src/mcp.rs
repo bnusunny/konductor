@@ -75,6 +75,14 @@ pub struct InitArgs {
     pub phases_total: i64,
 }
 
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+pub struct AdvancePhaseArgs {
+    #[schemars(description = "New phase identifier (e.g. '10-skill-review')")]
+    pub phase: String,
+    #[schemars(description = "Updated total number of phases in the roadmap")]
+    pub phases_total: i64,
+}
+
 // -- MCP Server --
 
 #[derive(Clone)]
@@ -201,6 +209,14 @@ impl KonductorMcp {
         match state::resolve_blocker(&args.phase) {
             Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string())),
             Err(e) => tool_error("STATE_NOT_FOUND", &e),
+        }
+    }
+
+    #[tool(description = "Advance a shipped project to a new phase. Preserves project history (phases_complete, initialized date, metrics, blockers). Only works when current step is 'shipped'.")]
+    async fn state_advance_phase(&self, Parameters(args): Parameters<AdvancePhaseArgs>) -> String {
+        match state::advance_phase(&args.phase, args.phases_total) {
+            Ok(s) => serde_json::to_string_pretty(&s).unwrap_or_else(|e| tool_error("SERIALIZE_ERROR", &e.to_string())),
+            Err(e) => tool_error("INVALID_TRANSITION", &e),
         }
     }
 

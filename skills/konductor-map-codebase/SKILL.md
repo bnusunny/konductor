@@ -88,7 +88,6 @@ mkdir -p .kiro/steering
 Provide the mapper with:
 - The target directory (absolute path)
 - The output file paths (absolute paths)
-- Reference to `references/codebase-analysis.md` if it exists
 
 Wait for the mapper to complete.
 
@@ -149,11 +148,7 @@ These files will be used as context for planning and execution.
 
 ## Step 7: Optional State Update
 
-If a Konductor project exists (`.konductor/state.toml`), update the metrics:
-- Increment `[metrics].total_agent_sessions`
-- Update `[metrics].last_activity`
-
-Write a result file at `.konductor/.results/map-codebase.toml`:
+If a Konductor project exists (`.konductor/state.toml`), write a result file at `.konductor/.results/map-codebase.toml`:
 
 ```toml
 step = "map"

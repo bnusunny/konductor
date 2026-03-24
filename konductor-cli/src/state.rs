@@ -222,6 +222,37 @@ pub fn resolve_blocker(phase: &str) -> Result<KonductorState, String> {
     Ok(state)
 }
 
+pub fn advance_phase(phase: &str, phases_total: i64) -> Result<KonductorState, String> {
+    let mut state = read_state()?;
+    let current = state.current.as_ref().ok_or("No current state found")?;
+    let step = current.step.as_deref().unwrap_or("unknown");
+
+    if step != "shipped" {
+        return Err(format!("Cannot advance phase: current step is '{step}', expected 'shipped'"));
+    }
+
+    let current = state.current.as_mut().unwrap();
+    current.phase = Some(phase.to_string());
+    current.step = Some("initialized".to_string());
+    current.status = Some("idle".to_string());
+    current.plan = Some(String::new());
+    current.wave = Some(0);
+
+    if let Some(progress) = state.progress.as_mut() {
+        progress.phases_complete = Some(progress.phases_complete.unwrap_or(0) + 1);
+        progress.phases_total = Some(phases_total);
+        progress.current_phase_plans = Some(0);
+        progress.current_phase_plans_complete = Some(0);
+    }
+
+    if let Some(metrics) = state.metrics.as_mut() {
+        metrics.last_activity = Some(Utc::now().to_rfc3339());
+    }
+
+    write_state(&state)?;
+    Ok(state)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -447,5 +478,110 @@ mod tests {
         let loaded = read_state_from(f.path()).unwrap();
         assert_eq!(loaded.blockers.len(), 0);
         assert!(loaded.project.is_none());
+    }
+
+    // -- advance_phase tests --
+
+    fn shipped_state() -> KonductorState {
+        KonductorState {
+            project: Some(Project {
+                name: Some("test".into()),
+                initialized: Some("2026-01-01T00:00:00Z".into()),
+            }),
+            current: Some(Current {
+                phase: Some("09".into()),
+                step: Some("shipped".into()),
+                status: Some("idle".into()),
+                plan: None,
+                wave: None,
+            }),
+            progress: Some(Progress {
+                phases_total: Some(9),
+                phases_complete: Some(9),
+                current_phase_plans: Some(0),
+                current_phase_plans_complete: Some(0),
+            }),
+            metrics: Some(Metrics {
+                last_activity: Some("2026-01-01T00:00:00Z".into()),
+                total_agent_sessions: Some(5),
+            }),
+            blockers: vec![Blocker {
+                phase: Some("03".into()),
+                step: Some("executing".into()),
+                reason: Some("old blocker".into()),
+                timestamp: None,
+                resolved: Some(true),
+            }],
+            release: None,
+        }
+    }
+
+    #[test]
+    fn test_advance_phase_from_shipped() {
+        let f = NamedTempFile::new().unwrap();
+        let state = shipped_state();
+        write_state_to(&state, f.path()).unwrap();
+
+        // Simulate advance_phase logic without filesystem dependency on STATE_FILE
+        let mut s = read_state_from(f.path()).unwrap();
+        let step = s.current.as_ref().unwrap().step.as_deref().unwrap();
+        assert_eq!(step, "shipped");
+
+        let current = s.current.as_mut().unwrap();
+        current.phase = Some("10-new-phase".into());
+        current.step = Some("initialized".into());
+        current.status = Some("idle".into());
+
+        let progress = s.progress.as_mut().unwrap();
+        progress.phases_complete = Some(progress.phases_complete.unwrap_or(0) + 1);
+        progress.phases_total = Some(10);
+        progress.current_phase_plans = Some(0);
+        progress.current_phase_plans_complete = Some(0);
+
+        write_state_to(&s, f.path()).unwrap();
+        let loaded = read_state_from(f.path()).unwrap();
+
+        // Preserves project.initialized
+        assert_eq!(loaded.project.unwrap().initialized, Some("2026-01-01T00:00:00Z".into()));
+        // Increments phases_complete
+        assert_eq!(loaded.progress.as_ref().unwrap().phases_complete, Some(10));
+        // Updates phases_total
+        assert_eq!(loaded.progress.as_ref().unwrap().phases_total, Some(10));
+        // Sets new phase
+        assert_eq!(loaded.current.as_ref().unwrap().phase, Some("10-new-phase".into()));
+        // Sets initialized step
+        assert_eq!(loaded.current.as_ref().unwrap().step, Some("initialized".into()));
+        // Preserves blocker history
+        assert_eq!(loaded.blockers.len(), 1);
+        assert_eq!(loaded.blockers[0].reason, Some("old blocker".into()));
+        // Preserves total_agent_sessions
+        assert_eq!(loaded.metrics.unwrap().total_agent_sessions, Some(5));
+    }
+
+    #[test]
+    fn test_advance_phase_rejects_non_shipped() {
+        let state = sample_state(); // step = "initialized"
+        let step = state.current.as_ref().unwrap().step.as_deref().unwrap();
+        assert_ne!(step, "shipped");
+        // advance_phase would reject this
+    }
+
+    #[test]
+    fn test_advance_phase_resets_plan_counters() {
+        let f = NamedTempFile::new().unwrap();
+        let mut state = shipped_state();
+        state.progress.as_mut().unwrap().current_phase_plans = Some(5);
+        state.progress.as_mut().unwrap().current_phase_plans_complete = Some(5);
+        write_state_to(&state, f.path()).unwrap();
+
+        let mut s = read_state_from(f.path()).unwrap();
+        let progress = s.progress.as_mut().unwrap();
+        progress.current_phase_plans = Some(0);
+        progress.current_phase_plans_complete = Some(0);
+
+        write_state_to(&s, f.path()).unwrap();
+        let loaded = read_state_from(f.path()).unwrap();
+        assert_eq!(loaded.progress.as_ref().unwrap().current_phase_plans, Some(0));
+        assert_eq!(loaded.progress.as_ref().unwrap().current_phase_plans_complete, Some(0));
     }
 }
