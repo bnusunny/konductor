@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.2](https://github.com/bnusunny/konductor/compare/v0.12.1...v0.12.2) (2026-03-25)
+
+
+### Bug Fixes
+
+* hook event name case mismatch and add ledger timestamps ([#64](https://github.com/bnusunny/konductor/issues/64)) ([5c75d49](https://github.com/bnusunny/konductor/commit/5c75d496d26471b990eebfc33535d7fa11fb3fe0))
+
 ## [0.12.1](https://github.com/bnusunny/konductor/compare/v0.12.0...v0.12.1) (2026-03-25)
 
 
