@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.4](https://github.com/bnusunny/konductor/compare/v0.12.3...v0.12.4) (2026-03-25)
+
+
+### Bug Fixes
+
+* remove Node.js wrapper, download binary directly as bin/konductor ([#71](https://github.com/bnusunny/konductor/issues/71)) ([c38037a](https://github.com/bnusunny/konductor/commit/c38037a357ecd46f159a56572ebb6bf52973f4c6))
+
 ## [0.12.3](https://github.com/bnusunny/konductor/compare/v0.12.2...v0.12.3) (2026-03-25)
 
 
