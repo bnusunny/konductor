@@ -16,7 +16,7 @@
 ## Quick Install
 
 ```bash
-curl -fsSL https://konductor.cloud/install | bash
+npm install -g konductor
 ```
 
 ## Quick Start
