@@ -16,7 +16,8 @@
     "resources": [
         "file://.konductor/project.md",
         "file://.konductor/requirements.md",
-        "file://.kiro/steering/**/*.md"
+        "file://.kiro/steering/**/*.md",
+        "file://~/.kiro/steering/**/*.md"
     ],
     "hooks": {
         "preToolUse": [

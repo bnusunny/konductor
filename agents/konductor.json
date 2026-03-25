@@ -3,22 +3,18 @@
     "description": "Spec-driven development orchestrator. Manages project initialization, phase planning, execution, verification, and shipping. Use @k-plan, @k-exec, @k-verify, @k-next, @k-status, or other prompts to trigger commands.",
     "model": "claude-opus-4.6-1m",
     "tools": [
-        "read",
-        "write",
-        "shell",
-        "code",
+        "@builtin",
         "@konductor"
     ],
     "allowedTools": [
-        "read",
-        "write",
-        "shell",
-        "code",
+        "@builtin",
         "@konductor"
     ],
     "resources": [
         "skill://.kiro/skills/konductor-*/SKILL.md",
+        "skill://~/.kiro/skills/konductor-*/SKILL.md",
         "file://.kiro/steering/**/*.md",
+        "file://~/.kiro/steering/**/*.md",
         "file://.konductor/config.toml",
         "file://.konductor/roadmap.md"
     ],

@@ -17,7 +17,8 @@
         "file://.konductor/project.md",
         "file://.konductor/requirements.md",
         "file://.konductor/roadmap.md",
-        "file://.kiro/steering/**/*.md"
+        "file://.kiro/steering/**/*.md",
+        "file://~/.kiro/steering/**/*.md"
     ],
     "hooks": {
         "preToolUse": [
