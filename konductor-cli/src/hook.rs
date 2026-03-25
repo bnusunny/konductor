@@ -25,6 +25,7 @@ struct WriteTracker {
 
 #[derive(Serialize, Deserialize, Clone)]
 struct ToolCall {
+    timestamp: String,
     tool_name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     input_summary: Option<String>,
@@ -49,9 +50,9 @@ pub fn run() {
         Err(_) => process::exit(0),
     };
 
-    match event.hook_event_name.as_str() {
-        "PostToolUse" => handle_post_tool_use(&event),
-        "PreToolUse" => handle_pre_tool_use(&event),
+    match event.hook_event_name.to_lowercase().as_str() {
+        "posttooluse" => handle_post_tool_use(&event),
+        "pretooluse" => handle_pre_tool_use(&event),
         _ => process::exit(0),
     }
 }
@@ -74,6 +75,7 @@ fn handle_post_tool_use(event: &HookEvent) {
         let output_summary = summarize_output(tool_name, &event.tool_response);
 
         let entry = ToolCall {
+            timestamp: chrono::Utc::now().to_rfc3339(),
             tool_name: tool_name.clone(),
             input_summary,
             success,
@@ -661,12 +663,14 @@ mod tests {
         let cwd = tmp.path().to_str().unwrap();
 
         append_to_ledger(cwd, ToolCall {
+            timestamp: chrono::Utc::now().to_rfc3339(),
             tool_name: "shell".into(),
             input_summary: Some("cargo test".into()),
             success: true,
             output_summary: None,
         });
         append_to_ledger(cwd, ToolCall {
+            timestamp: chrono::Utc::now().to_rfc3339(),
             tool_name: "write".into(),
             input_summary: Some("src/main.rs".into()),
             success: true,
@@ -686,6 +690,7 @@ mod tests {
 
         for i in 0..10 {
             append_to_ledger(cwd, ToolCall {
+                timestamp: chrono::Utc::now().to_rfc3339(),
                 tool_name: format!("tool_{}", i),
                 input_summary: None,
                 success: true,
@@ -746,6 +751,7 @@ mod tests {
 
         // Simulate state_get in ledger
         append_to_ledger(cwd, ToolCall {
+            timestamp: chrono::Utc::now().to_rfc3339(),
             tool_name: "@konductor/state_get".into(),
             input_summary: None,
             success: true,
@@ -786,6 +792,7 @@ mod tests {
         let cwd = tmp.path().to_str().unwrap();
 
         append_to_ledger(cwd, ToolCall {
+            timestamp: chrono::Utc::now().to_rfc3339(),
             tool_name: "shell".into(),
             input_summary: Some("cargo test".into()),
             success: true,
