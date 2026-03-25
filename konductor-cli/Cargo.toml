@@ -1,6 +1,6 @@
 [package]
 name = "konductor"
-version = "0.4.0"
+version = "0.12.0"
 edition = "2021"
 description = "Unified CLI for Konductor — MCP server and hook processor"
 license = "MIT"
