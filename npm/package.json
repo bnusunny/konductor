@@ -1,6 +1,6 @@
 {
   "name": "konductor",
-  "version": "0.12.0",
+  "version": "0.4.1",
   "description": "Spec-driven development orchestrator for Kiro CLI — MCP server and hook processor",
   "bin": {
     "konductor": "bin/konductor"
