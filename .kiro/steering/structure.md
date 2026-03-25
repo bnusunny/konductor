@@ -70,7 +70,6 @@ konductor/
 │   └── conventional-commits.yml
 ├── docs-site/              # MkDocs documentation
 ├── docs/                   # GitHub Pages (CNAME, one-line installer)
-├── install.sh              # Installer script
 └── version.txt             # Single source of truth for version
 ```
 
