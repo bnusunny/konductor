@@ -29,6 +29,7 @@ function fetch(url) {
     const mod = url.startsWith("https") ? https : http;
     mod.get(url, { headers: { "User-Agent": "konductor-npm" } }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        res.resume();
         return fetch(res.headers.location).then(resolve, reject);
       }
       if (res.statusCode !== 200) {
