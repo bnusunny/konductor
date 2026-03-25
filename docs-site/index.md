@@ -19,14 +19,6 @@
 curl -fsSL https://konductor.cloud/install | bash
 ```
 
-Or clone and install manually:
-
-```bash
-git clone https://github.com/bnusunny/konductor.git
-cd konductor
-./install.sh
-```
-
 ## Quick Start
 
 ```bash

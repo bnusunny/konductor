@@ -30,31 +30,13 @@ See the [State Machine Reference](reference/state-machine.md) for all valid tran
 
 ## "Binary not available (no release found)"
 
-**Cause:** The install script couldn't download a prebuilt binary for your platform. This happens when no GitHub release exists yet.
+**Cause:** The npm postinstall couldn't download a prebuilt binary for your platform.
 
 **Fix:** Build from source:
 
 ```bash
 cd konductor/konductor-cli
 cargo build --release
-cp target/release/konductor ~/.kiro/bin/konductor
-```
-
-## Permission Errors During Install
-
-**Cause:** The target directory isn't writable.
-
-**Fix:** For global installs, ensure `~/.kiro/` is writable:
-
-```bash
-mkdir -p ~/.kiro
-bash install.sh --force
-```
-
-For system-wide installs, use sudo:
-
-```bash
-sudo bash install.sh --global --force
 ```
 
 ## Checksum Verification Failed
@@ -63,10 +45,9 @@ sudo bash install.sh --global --force
 
 **Fix:**
 
-1. Delete the binary and retry:
+1. Reinstall:
    ```bash
-   rm ~/.kiro/bin/konductor
-   bash install.sh --force
+   npm install -g konductor
    ```
 
 2. If the problem persists, build from source instead.
@@ -104,12 +85,12 @@ The status output shows active blockers with their reasons. After fixing the und
 
 ## Hook Binary Not Found
 
-**Cause:** The `konductor` binary isn't at `~/.kiro/bin/konductor`.
+**Cause:** The `konductor` binary isn't on PATH.
 
-**Fix:** Re-run the installer:
+**Fix:** Reinstall via npm:
 
 ```bash
-bash install.sh --force
+npm install -g konductor
 ```
 
 Or build and copy manually:
@@ -117,7 +98,6 @@ Or build and copy manually:
 ```bash
 cd konductor/konductor-cli
 cargo build --release
-cp target/release/konductor ~/.kiro/bin/konductor
 ```
 
 ## MCP Server Won't Start
@@ -126,6 +106,6 @@ cp target/release/konductor ~/.kiro/bin/konductor
 
 **Fix:**
 
-1. Check the binary works: `~/.kiro/bin/konductor --version`
+1. Check the binary works: `konductor --version`
 2. Rebuild if needed: `cd konductor-cli && cargo build --release`
 3. Ensure the agent config points to the correct path in `agents/konductor.json`

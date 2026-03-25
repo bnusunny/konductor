@@ -17,24 +17,6 @@ Each phase outputs artifacts to `.konductor/` that guide the next phase, prevent
 
 ## Quick Install
 
-Clone and run the installer:
-
-```bash
-git clone https://github.com/bnusunny/konductor.git
-cd konductor
-./install.sh
-```
-
-Or use the one-line installer:
-
-```bash
-curl -fsSL https://konductor.cloud/install | bash
-```
-
-Installs to `~/.kiro/` (global) or `./.kiro/` (local project). Use `--force` to overwrite existing files.
-
-Or install via npm:
-
 ```bash
 npm install -g konductor
 ```
@@ -277,22 +259,13 @@ cd konductor
 # Build the konductor binary
 cd konductor-cli
 cargo build --release
-
-# Install locally
-cd ..
-./install.sh --local
 ```
 
 ### Running Tests
 
 ```bash
-# Test the konductor binary
 cd konductor-cli
 cargo test
-
-# Test skills by running the installer
-./install.sh --local
-kiro-cli --agent konductor
 ```
 
 ## Acknowledgments

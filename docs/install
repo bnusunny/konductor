@@ -1,18 +1,4 @@
 #!/usr/bin/env bash
 set -e
-
-REPO="bnusunny/konductor"
-TMPDIR=$(mktemp -d)
-trap 'rm -rf "$TMPDIR"' EXIT
-
-echo "Downloading Konductor..."
-if command -v curl >/dev/null 2>&1; then
-  curl -fsSL "https://github.com/${REPO}/archive/refs/heads/main.tar.gz" | tar -xz -C "$TMPDIR"
-elif command -v wget >/dev/null 2>&1; then
-  wget -qO- "https://github.com/${REPO}/archive/refs/heads/main.tar.gz" | tar -xz -C "$TMPDIR"
-else
-  echo "Error: curl or wget is required"
-  exit 1
-fi
-
-bash "$TMPDIR/konductor-main/install.sh" "$@"
+echo "Install konductor via npm:"
+echo "  npm install -g konductor"

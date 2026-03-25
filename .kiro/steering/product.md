@@ -18,7 +18,7 @@ Spec-driven development orchestrator for Kiro CLI. Manages project initializatio
 - Per-project granular benchmark metrics (timing, test pass rates, lint, artifact quality)
 - SAM deployment pipeline (deploy → verify → teardown)
 - Self-improvement agent with per-project analysis
-- npm distribution (`npx konductor` or `npm install -g konductor`)
+- npm distribution (`npm install -g konductor`)
 - Installer script with checksum verification and idempotent operation
 - MkDocs documentation site
 - Rust-based E2E test harness using Agent Client Protocol (ACP)
