@@ -76,6 +76,15 @@ jobs:
             echo "CC_aarch64_unknown_linux_musl=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
           fi
 
+      - name: Sync Cargo.toml version from version.txt
+        run: |
+          VERSION=$(cat version.txt | tr -d '[:space:]')
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "0,/^version = .*/s//version = \"${VERSION}\"/" konductor-cli/Cargo.toml
+          else
+            sed -i "0,/^version = .*/s//version = \"${VERSION}\"/" konductor-cli/Cargo.toml
+          fi
+
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
         working-directory: konductor-cli
