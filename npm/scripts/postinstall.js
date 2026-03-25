@@ -49,7 +49,7 @@ async function main() {
   const asset = getAssetName();
   const baseUrl = `https://github.com/${REPO}/releases/download/v${version}`;
   const binDir = path.join(__dirname, "..", "bin");
-  const dest = path.join(binDir, "konductor-native");
+  const dest = path.join(binDir, "konductor");
 
   console.log(`Downloading konductor v${version} (${asset})...`);
 
