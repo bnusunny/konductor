@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.1](https://github.com/bnusunny/konductor/compare/v0.12.0...v0.12.1) (2026-03-25)
+
+
+### Bug Fixes
+
+* add global ~/.kiro paths for skill and steering resources ([#61](https://github.com/bnusunny/konductor/issues/61)) ([936f2e5](https://github.com/bnusunny/konductor/commit/936f2e53ad712560a6e0b97765f6bb491fd4b9de))
+* improve konductor agent prompt with complete tool list and orchestration guidance ([#63](https://github.com/bnusunny/konductor/issues/63)) ([44ea034](https://github.com/bnusunny/konductor/commit/44ea034e5fb685f6507bd86f4661e765d024820e))
+
 ## [0.12.0](https://github.com/bnusunny/konductor/compare/v0.11.0...v0.12.0) (2026-03-24)
 
 
