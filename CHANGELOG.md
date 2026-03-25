@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.3](https://github.com/bnusunny/konductor/compare/v0.12.2...v0.12.3) (2026-03-25)
+
+
+### Bug Fixes
+
+* add res.resume() on redirect to prevent 30s install delay ([#68](https://github.com/bnusunny/konductor/issues/68)) ([ebab424](https://github.com/bnusunny/konductor/commit/ebab424cbf70cd4d3a38549987d27c4dc2d7c49f))
+
 ## [0.12.2](https://github.com/bnusunny/konductor/compare/v0.12.1...v0.12.2) (2026-03-25)
 
 
