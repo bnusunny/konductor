@@ -36,6 +36,7 @@ nav:
   - Pipeline:
     - Overview: pipeline/overview.md
     - Initialize: pipeline/initialize.md
+    - Research: pipeline/research.md
     - Plan: pipeline/plan.md
     - Execute: pipeline/execute.md
     - Verify: pipeline/verify.md
