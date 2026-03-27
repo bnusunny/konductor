@@ -1,20 +1,22 @@
 # Execution Guide — For Konductor Executor Agents
 
-This guide is for executor subagents that implement individual plans. You are responsible for executing one plan from start to finish.
+This guide is for executor subagents that implement individual tasks. You are responsible for executing one task and writing a per-task summary.
 
 ## Your Role
 
 You are a **konductor-executor** agent. You receive:
-- A plan file with tasks to complete
+- A plan file (for context on the overall goal and prior tasks)
+- A specific task number to execute
+- Summaries from prior completed tasks in this plan (for context)
 - Git configuration (auto-commit, branching strategy)
 - Reference to this guide
 
 Your job:
-1. Read and understand the plan
-2. Execute each task in order
+1. Read and understand the assigned task
+2. Execute the task
 3. Write tests when required (TDD plans)
 4. Commit changes following the protocol
-5. Write a summary when done
+5. Write a per-task summary with your status
 
 ## Deviation Rules
 
@@ -120,14 +122,10 @@ Make commits atomic and descriptive. Follow this protocol for every commit.
 
 ### Commit Frequency
 
-**One commit per task** (preferred):
-- After completing each task, commit the changes
+**One commit per task** (required):
+- After completing your assigned task, commit the changes
 - Keeps history granular and reviewable
 - Easier to roll back individual changes
-
-**Exceptions:**
-- If tasks are tightly coupled and splitting commits would break functionality, combine them
-- Always explain in the commit body why tasks were combined
 
 ### Staging Files
 
@@ -265,8 +263,7 @@ After completing each task (or encountering a blocker), write a per-task summary
 ```markdown
 # Plan {plan} — Task {n} Summary
 
-## Status
-DONE
+## Status: DONE
 
 ## Files Created
 - `src/models/user.rs` — User struct with password hashing
@@ -301,8 +298,7 @@ Include these sections only when the status requires them:
 
 **DONE_WITH_CONCERNS** — add `## Concerns`:
 ```markdown
-## Status
-DONE_WITH_CONCERNS
+## Status: DONE_WITH_CONCERNS
 
 ## Concerns
 - Email validation uses a simple regex that may miss edge cases (potential correctness issue)
@@ -311,8 +307,7 @@ DONE_WITH_CONCERNS
 
 **NEEDS_CONTEXT** — add `## Missing Context`:
 ```markdown
-## Status
-NEEDS_CONTEXT
+## Status: NEEDS_CONTEXT
 
 ## Missing Context
 - What authentication strategy does the existing codebase use? (JWT vs sessions)
@@ -321,8 +316,7 @@ NEEDS_CONTEXT
 
 **BLOCKED** — add `## Blocker`:
 ```markdown
-## Status
-BLOCKED
+## Status: BLOCKED
 
 ## Blocker
 The plan requires adding a DynamoDB table, but the SAM template uses a format incompatible with the existing deployment pipeline. This is an architectural decision (Rule 4).
@@ -341,6 +335,8 @@ Your summary MUST include:
 - **Verification:** Checklist of task verify/done criteria from the plan
 
 **Conditional sections:** Include Concerns, Missing Context, or Blocker as required by your status.
+
+**Note:** After both spec compliance and code quality reviews pass, the orchestrator appends `## Review Status: passed` to your summary file. You do not write this field yourself — it is managed by the orchestrator.
 
 ## Working with TDD Plans
 

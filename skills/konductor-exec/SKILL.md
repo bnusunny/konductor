@@ -96,7 +96,7 @@ Read the `## Status` field from the task summary and handle per the implementer 
 - **DONE** → proceed to two-stage review (Step 5.1.3)
 - **DONE_WITH_CONCERNS** → read `## Concerns`. If concerns mention correctness issues, security risks, or spec deviations (actionable) → dispatch executor to address them, then proceed to review. If concerns are informational → proceed to review.
 - **NEEDS_CONTEXT** → read `## Missing Context`, provide the information, re-dispatch executor with the context (max 2 retries). If still NEEDS_CONTEXT after 2 retries → treat as BLOCKED.
-- **BLOCKED** → read `## Blocker`. Assess: context problem → provide context and re-dispatch; task too complex → split; plan wrong → escalate to user. Track blocked count. If 3+ tasks in the phase have been BLOCKED, trigger circuit breaker: stop execution and report all blockers to user.
+- **BLOCKED** → read `## Blocker`. Assess: context problem → provide context and re-dispatch; task too complex → split into smaller tasks. If assessment fails or the task remains blocked after re-dispatch, call `state_add_blocker` with the blocker description. Track blocked count. If 3+ tasks in the phase have been BLOCKED, trigger circuit breaker: stop execution and report all blockers to user.
 
 **5.1.3 — Two-Stage Review** (if `config.toml` `features.code_review = true`)
 

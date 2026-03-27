@@ -110,9 +110,9 @@ The phase is ready for execution. Run the **Execution Pipeline**:
    - **DONE** → proceed to 5c (two-stage review).
    - **DONE_WITH_CONCERNS** → read `## Concerns`. If concerns mention correctness issues, security risks, or spec deviations: dispatch a fresh **konductor-executor** to address them, then proceed to 5c. If concerns are informational (style preferences, alternative approaches considered): proceed to 5c.
    - **NEEDS_CONTEXT** → read `## Missing Context`, provide the requested information, re-dispatch a fresh executor for the same task. Maximum 2 retries. If still NEEDS_CONTEXT after retries, treat as BLOCKED.
-   - **BLOCKED** → read `## Blocker`. Call `state_add_blocker` with the blocker description. If 3 or more tasks in this phase have been BLOCKED, trigger circuit breaker: stop execution entirely and report all blockers to the user. Otherwise continue with the next task.
+   - **BLOCKED** → read `## Blocker`. Assess: context problem → provide context and re-dispatch; task too complex → split into smaller tasks. If assessment fails or the task remains blocked after re-dispatch, call `state_add_blocker` with the blocker description. If 3 or more tasks in this phase have been BLOCKED, trigger circuit breaker: stop execution entirely and report all blockers to the user. Otherwise continue with the next task.
 
-   **5c. Two-stage review** (if `config.toml` `features.code_review = true`; skip both stages if disabled):
+   **5c. Two-stage review** (if `config.toml` `features.code_review = true`; skip both stages if disabled, and append `## Review Status: passed` to the task summary so resume logic works correctly):
 
    **Stage 1 — Spec Compliance:**
    Spawn **konductor-spec-reviewer** with the task spec (from the plan file), the task summary, and modified files. The reviewer writes `{plan}-task-{n}-spec-review.md`.

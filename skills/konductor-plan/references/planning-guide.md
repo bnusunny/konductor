@@ -122,7 +122,7 @@ Each plan is a markdown file with TOML frontmatter and a structured body.
 - `plan`: Plan number within the phase (1, 2, 3...)
 - `wave`: Execution wave (1, 2, 3...)
 - `depends_on`: List of plan numbers this plan depends on (e.g., `[1, 2]`)
-- `type`: Either "tdd" (test-driven, default) or "execute" (standard implementation). Use `tdd = false` in frontmatter to opt out for infrastructure, configuration, or documentation tasks. The planner must always emit an explicit `type` field.
+- `type`: Either "tdd" (test-driven, default) or "execute" (standard implementation). Use `type = "execute"` to opt out of TDD for infrastructure, configuration, or documentation tasks. The planner must always emit an explicit `type` field.
 - `autonomous`: Boolean, true if executor can proceed without human input
 - `requirements`: List of REQ-XX identifiers this plan addresses
 - `files_modified`: List of files this plan will touch (helps with merge conflict prediction)
@@ -392,7 +392,7 @@ TDD is the default execution mode for all plans. The planner must always emit `t
 
 **Backward compatibility:** Existing plans without an explicit `type` field are treated as `"execute"`. The planner must always emit an explicit `type` field going forward, making the default moot for well-formed plans.
 
-**Opt-out with `tdd = false`:** Use `type = "execute"` for tasks where TDD doesn't apply:
+**Opt-out with `type = "execute"`:** Use `type = "execute"` for tasks where TDD doesn't apply:
 - Infrastructure plans (SAM templates, Terraform, CI/CD configs)
 - Configuration files (TOML, YAML, JSON configs)
 - Documentation-only plans (README, guides, specs)
