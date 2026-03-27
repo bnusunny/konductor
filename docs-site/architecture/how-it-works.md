@@ -35,7 +35,8 @@ Specialized agents handle specific tasks:
 | `konductor-researcher` | Analyzes codebases and documents patterns |
 | `konductor-planner` | Creates detailed phase plans with tasks |
 | `konductor-design-reviewer` | Reviews architecture and design for soundness, feasibility, and risk |
-| `konductor-executor` | Implements code following TDD principles |
+| `konductor-executor` | Implements code following TDD principles (one fresh agent per task) |
+| `konductor-spec-reviewer` | Reviews task output for spec compliance |
 | `konductor-code-reviewer` | Reviews code changes for correctness, security, and quality |
 | `konductor-verifier` | Validates tests and acceptance criteria |
 
@@ -84,9 +85,13 @@ Linux binaries are statically linked with musl for maximum portability — no gl
 ├── phases/                     # Phase plans
 │   └── {phase}/
 │       ├── plans/              # Execution plans
+│       │   ├── 001.md          # Plan file
+│       │   ├── 001-task-1-summary.md       # Per-task summary
+│       │   ├── 001-task-1-spec-review.md   # Spec compliance review
+│       │   └── 001-task-1-quality-review.md # Code quality review
 │       ├── design.md           # Phase-level architecture
 │       ├── review.md           # Design review findings
-│       ├── code-review.md      # Code review findings
+│       ├── code-review.md      # Holistic cross-task review
 │       └── research.md         # Ecosystem research
 └── .results/                   # Execution results
 ```

@@ -64,7 +64,7 @@ Type `@k-` then press Tab to see all available commands:
 ## Pipeline Flow
 
 ```
-Initialize → Research → Plan → Design Review → Execute → Code Review → Verify → Ship
+Initialize → Research → Plan → Design Review → Execute (per-task + two-stage review) → Verify → Ship
 ```
 
 Each phase outputs artifacts to `.konductor/` that guide the next phase, preventing context rot and ensuring consistency.

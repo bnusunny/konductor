@@ -8,8 +8,8 @@ Konductor transforms high-level project requirements into working software throu
 
 1. **Initialize** — Discovers project goals, generates spec documents (project.md, requirements.md, roadmap.md)
 2. **Research** — Analyzes codebase, maps dependencies, identifies patterns and conventions
-3. **Plan** — Breaks work into phases with specific tasks, acceptance criteria, and cross-phase regression gates
-4. **Execute** — Implements tasks with TDD, creates tests before code, maintains context freshness via subagents
+3. **Plan** — Breaks work into phases with specific tasks, acceptance criteria, and strict granularity rules
+4. **Execute** — Dispatches a fresh executor per task with TDD, runs two-stage review (spec compliance + code quality) after each task
 5. **Verify** — Runs tests, validates acceptance criteria, ensures quality gates pass
 6. **Ship** — Creates release notes, commits work, opens pull requests, moves to next phase
 
@@ -74,7 +74,7 @@ Execute specific phases:
 └──────┬──────┘
        ↓
 ┌─────────────┐
-│  Execute    │ → working code + tests
+│  Execute    │ → per-task dispatch + two-stage review
 └──────┬──────┘
        ↓
 ┌─────────────┐
@@ -140,7 +140,9 @@ Specialized agents handle specific tasks:
 - `konductor-discoverer` — Interviews users to understand project goals
 - `konductor-researcher` — Analyzes codebases and documents patterns
 - `konductor-planner` — Creates detailed phase plans with tasks
-- `konductor-executor` — Implements code following TDD principles
+- `konductor-executor` — Implements code following TDD principles (one fresh agent per task)
+- `konductor-spec-reviewer` — Reviews task output for spec compliance
+- `konductor-code-reviewer` — Reviews code changes for quality and security
 - `konductor-verifier` — Validates tests and acceptance criteria
 
 **5. Hook System (`konductor hook`)**
