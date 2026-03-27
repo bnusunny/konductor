@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/bnusunny/konductor/compare/v0.12.4...v0.13.0) (2026-03-27)
+
+
+### Features
+
+* v0.13.0 — Execution Quality (Superpowers-Inspired Improvements) ([#73](https://github.com/bnusunny/konductor/issues/73)) ([be69366](https://github.com/bnusunny/konductor/commit/be693663d3e30ed5cf5de01da1b2513eaf9c0a88))
+
 ## [0.12.4](https://github.com/bnusunny/konductor/compare/v0.12.3...v0.12.4) (2026-03-25)
 
 
