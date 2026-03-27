@@ -39,25 +39,79 @@ Plans execute in waves. Wave dependencies must form a DAG (directed acyclic grap
 
 ## Task Sizing
 
-Each plan contains 2-5 tasks. Each task should take 15-60 minutes of execution time.
+Each plan contains 2-5 tasks. Each task is broken into **bite-sized steps that take 2-5 minutes each**. Every step that involves code must include the actual code block — no prose descriptions of what to write.
 
 **If a plan would need more than 5 tasks:** Split it into multiple plans in the same wave.
 
 **Task structure:**
 - **files:** Which files to modify/create
-- **action:** What to do (be specific)
+- **action:** What to do — broken into numbered steps, each 2-5 minutes
 - **verify:** How to check success (command to run)
 - **done:** What "done" looks like (observable outcome)
 
-**Example task:**
+**Each step within a task must:**
+1. Be completable in 2-5 minutes
+2. Include the exact code to write (for code steps)
+3. Include the command to run (for verification steps)
+4. Be independently verifiable
+
+**Example task with bite-sized steps (TDD):**
 ```markdown
 ### Task 2: Add password hashing to User model
 
 - **files:** `src/models/user.rs`
-- **action:** Import bcrypt crate, add `hash_password` method to User impl, call it in `new` constructor
-- **verify:** `cargo test user::test_password_hashing`
-- **done:** Passwords are hashed with bcrypt before storage
+- **action:**
+  1. Write failing test:
+     ```rust
+     #[cfg(test)]
+     mod tests {
+         use super::*;
+
+         #[test]
+         fn test_password_is_hashed() {
+             let user = User::new("test@example.com".into(), "Secret123!".into()).unwrap();
+             assert_ne!(user.password_hash(), "Secret123!");
+             assert!(user.verify_password("Secret123!"));
+         }
+     }
+     ```
+  2. Run `cargo test user::tests::test_password_is_hashed` — confirm it fails (method not found)
+  3. Implement:
+     ```rust
+     use bcrypt::{hash, verify, DEFAULT_COST};
+
+     impl User {
+         pub fn new(email: String, password: String) -> Result<Self, AuthError> {
+             let password_hash = hash(&password, DEFAULT_COST)
+                 .map_err(|_| AuthError::HashError)?;
+             Ok(Self { id: Uuid::new_v4(), email, password_hash, created_at: Utc::now() })
+         }
+
+         pub fn password_hash(&self) -> &str { &self.password_hash }
+
+         pub fn verify_password(&self, password: &str) -> bool {
+             verify(password, &self.password_hash).unwrap_or(false)
+         }
+     }
+     ```
+  4. Run `cargo test user::tests::test_password_is_hashed` — confirm it passes
+- **verify:** `cargo test user::tests::test_password_is_hashed`
+- **done:** Passwords are hashed with bcrypt before storage, verified by test
 ```
+
+## No Placeholders
+
+Every step must contain the actual content an engineer needs to execute it. The **konductor-plan-checker** agent enforces this rule and will reject plans that violate it.
+
+**Banned patterns:**
+- `"TBD"`, `"TODO"`, `"implement later"`, `"fill in details"`
+- `"Add appropriate error handling"` / `"add validation"` / `"handle edge cases"` (show the actual error handling, validation, or edge case code)
+- `"Write tests for the above"` without actual test code (include the test code)
+- `"Similar to Task N"` (repeat the code — the engineer may be reading tasks out of order)
+- Steps that describe what to do without showing how (code blocks required for code steps)
+- References to types, functions, or methods not defined in any prior or current task
+
+**Rule:** If a step involves writing code, the step must include the code block. If a step involves running a command, the step must include the command. No exceptions.
 
 ## Plan File Format
 
@@ -68,7 +122,7 @@ Each plan is a markdown file with TOML frontmatter and a structured body.
 - `plan`: Plan number within the phase (1, 2, 3...)
 - `wave`: Execution wave (1, 2, 3...)
 - `depends_on`: List of plan numbers this plan depends on (e.g., `[1, 2]`)
-- `type`: Either "execute" (standard implementation) or "tdd" (test-driven)
+- `type`: Either "tdd" (test-driven, default) or "execute" (standard implementation). Use `tdd = false` in frontmatter to opt out for infrastructure, configuration, or documentation tasks. The planner must always emit an explicit `type` field.
 - `autonomous`: Boolean, true if executor can proceed without human input
 - `requirements`: List of REQ-XX identifiers this plan addresses
 - `files_modified`: List of files this plan will touch (helps with merge conflict prediction)
@@ -93,7 +147,7 @@ phase = "01-auth-system"
 plan = 1
 wave = 1
 depends_on = []
-type = "execute"
+type = "tdd"
 autonomous = true
 requirements = ["REQ-01", "REQ-02"]
 files_modified = ["src/models/user.rs", "src/db/migrations/001_users.sql"]
@@ -138,33 +192,120 @@ impl User {
 
 ## Tasks
 
-### Task 1: Create User struct
+### Task 1: Create User struct with tests
 
 - **files:** `src/models/user.rs`
-- **action:** Define User struct with fields: id (UUID), email (String), password_hash (String), created_at (DateTime)
-- **verify:** `cargo check` passes
-- **done:** User struct compiles
+- **action:**
+  1. Write failing test:
+     ```rust
+     #[cfg(test)]
+     mod tests {
+         use super::*;
+
+         #[test]
+         fn test_new_user_has_correct_email() {
+             let user = User::new("test@example.com".into(), "Secret123!".into()).unwrap();
+             assert_eq!(user.email, "test@example.com");
+         }
+
+         #[test]
+         fn test_new_user_has_uuid() {
+             let user = User::new("test@example.com".into(), "Secret123!".into()).unwrap();
+             assert!(!user.id.is_nil());
+         }
+     }
+     ```
+  2. Run `cargo test models::user::tests` — confirm it fails (User not defined)
+  3. Implement:
+     ```rust
+     use chrono::{DateTime, Utc};
+     use uuid::Uuid;
+
+     pub struct User {
+         pub id: Uuid,
+         pub email: String,
+         password_hash: String,
+         pub created_at: DateTime<Utc>,
+     }
+
+     impl User {
+         pub fn new(email: String, password: String) -> Result<Self, AuthError> {
+             Ok(Self {
+                 id: Uuid::new_v4(),
+                 email,
+                 password_hash: password, // placeholder — next task adds hashing
+                 created_at: Utc::now(),
+             })
+         }
+     }
+     ```
+  4. Run `cargo test models::user::tests` — confirm both tests pass
+- **verify:** `cargo test models::user::tests`
+- **done:** User struct compiles and passes basic tests
 
 ### Task 2: Add password hashing
 
 - **files:** `src/models/user.rs`
-- **action:** Import bcrypt, add `hash_password` method, call in constructor
-- **verify:** `cargo test user::test_password_hashing`
-- **done:** Passwords are hashed before storage
+- **action:**
+  1. Add failing test:
+     ```rust
+     #[test]
+     fn test_password_is_hashed_not_plaintext() {
+         let user = User::new("test@example.com".into(), "Secret123!".into()).unwrap();
+         assert_ne!(user.password_hash, "Secret123!");
+     }
+
+     #[test]
+     fn test_verify_correct_password() {
+         let user = User::new("test@example.com".into(), "Secret123!".into()).unwrap();
+         assert!(user.verify_password("Secret123!"));
+     }
+
+     #[test]
+     fn test_verify_wrong_password() {
+         let user = User::new("test@example.com".into(), "Secret123!".into()).unwrap();
+         assert!(!user.verify_password("WrongPass1!"));
+     }
+     ```
+  2. Run `cargo test models::user::tests` — confirm new tests fail
+  3. Update `User::new` and add `verify_password`:
+     ```rust
+     use bcrypt::{hash, verify, DEFAULT_COST};
+
+     impl User {
+         pub fn new(email: String, password: String) -> Result<Self, AuthError> {
+             let password_hash = hash(&password, DEFAULT_COST)
+                 .map_err(|_| AuthError::HashError)?;
+             Ok(Self { id: Uuid::new_v4(), email, password_hash, created_at: Utc::now() })
+         }
+
+         pub fn verify_password(&self, password: &str) -> bool {
+             verify(password, &self.password_hash).unwrap_or(false)
+         }
+     }
+     ```
+  4. Run `cargo test models::user::tests` — confirm all 5 tests pass
+- **verify:** `cargo test models::user::tests`
+- **done:** Passwords are hashed with bcrypt, verified by 3 new tests
 
 ### Task 3: Create migration
 
 - **files:** `src/db/migrations/001_users.sql`
-- **action:** Write CREATE TABLE users with columns matching User struct
-- **verify:** `sqlx migrate run` succeeds
-- **done:** users table exists in database
+- **action:**
+  1. Write the migration:
+     ```sql
+     CREATE TABLE users (
+         id UUID PRIMARY KEY,
+         email VARCHAR(255) NOT NULL UNIQUE,
+         password_hash VARCHAR(255) NOT NULL,
+         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+     );
 
-### Task 4: Wire User model to auth routes
-
-- **files:** `src/routes/auth.rs`
-- **action:** Import User model, use it in registration handler
-- **verify:** Compilation succeeds, User is referenced
-- **done:** Registration route can create User instances
+     CREATE INDEX idx_users_email ON users (email);
+     ```
+  2. Run `sqlx migrate run` — confirm it succeeds
+- **verify:** `sqlx migrate run`
+- **done:** users table exists in database with email unique constraint
 ```
 
 ## Phase-Level Design Document
@@ -245,37 +386,71 @@ A requirement can span multiple plans. Example: "REQ-05: Users can manage their 
 - Plan 3: View profile (requirements = ["REQ-05"])
 - Plan 4: Edit profile (requirements = ["REQ-05"])
 
-## TDD Detection
+## TDD as Default
 
-If a task can be expressed as "expect(fn(input)).toBe(output)", make it a TDD plan.
+TDD is the default execution mode for all plans. The planner must always emit `type = "tdd"` unless the plan explicitly opts out.
 
-**Indicators:**
-- Pure functions (no I/O)
-- Clear input/output contract
-- Algorithmic logic (sorting, parsing, validation)
-- Data transformations
+**Backward compatibility:** Existing plans without an explicit `type` field are treated as `"execute"`. The planner must always emit an explicit `type` field going forward, making the default moot for well-formed plans.
 
-**TDD plan differences:**
-- `type = "tdd"` in frontmatter
-- First task writes tests
-- Remaining tasks implement to pass tests
-- Verification is `cargo test` or equivalent
+**Opt-out with `tdd = false`:** Use `type = "execute"` for tasks where TDD doesn't apply:
+- Infrastructure plans (SAM templates, Terraform, CI/CD configs)
+- Configuration files (TOML, YAML, JSON configs)
+- Documentation-only plans (README, guides, specs)
+- Refactoring plans where existing tests already cover the behavior
+
+**TDD task structure (RED → GREEN → REFACTOR):**
+1. **RED:** Write a failing test with the exact test code
+2. **Verify RED:** Run the test command — confirm it fails
+3. **GREEN:** Write the minimal implementation to pass the test
+4. **Verify GREEN:** Run the test command — confirm it passes
+5. **REFACTOR** (optional): Clean up while keeping tests green
 
 **Example TDD task:**
 ```markdown
-### Task 1: Write password validation tests
+### Task 1: Write password validation tests and implement
 
-- **files:** `src/validation/password_test.rs`
-- **action:** Write tests for: min 8 chars, has uppercase, has number, has special char
-- **verify:** Tests exist and fail
-- **done:** 4 test cases written
+- **files:** `src/validation/password.rs`, `src/validation/password_test.rs`
+- **action:**
+  1. Write failing tests:
+     ```rust
+     #[cfg(test)]
+     mod tests {
+         use super::validate_password;
 
-### Task 2: Implement password validation
+         #[test]
+         fn rejects_short_password() {
+             assert!(validate_password("Ab1!").is_err());
+         }
 
-- **files:** `src/validation/password.rs`
-- **action:** Write validate_password function to satisfy tests
-- **verify:** `cargo test validation::password` passes
-- **done:** All password validation tests pass
+         #[test]
+         fn rejects_no_uppercase() {
+             assert!(validate_password("abcdefg1!").is_err());
+         }
+
+         #[test]
+         fn rejects_no_number() {
+             assert!(validate_password("Abcdefgh!").is_err());
+         }
+
+         #[test]
+         fn accepts_valid_password() {
+             assert!(validate_password("Secret123!").is_ok());
+         }
+     }
+     ```
+  2. Run `cargo test validation::password` — confirm all 4 tests fail
+  3. Implement:
+     ```rust
+     pub fn validate_password(password: &str) -> Result<(), &'static str> {
+         if password.len() < 8 { return Err("too short"); }
+         if !password.chars().any(|c| c.is_uppercase()) { return Err("no uppercase"); }
+         if !password.chars().any(|c| c.is_numeric()) { return Err("no number"); }
+         Ok(())
+     }
+     ```
+  4. Run `cargo test validation::password` — confirm all 4 tests pass
+- **verify:** `cargo test validation::password`
+- **done:** Password validation passes all 4 test cases
 ```
 
 ## Interface Context
@@ -330,9 +505,13 @@ Before finalizing plans, verify:
 
 - [ ] Phase-level `design.md` exists with overview, components, interactions, key decisions, and shared interfaces
 - [ ] Every plan has valid TOML frontmatter
+- [ ] Every plan has an explicit `type` field (`"tdd"` or `"execute"`)
+- [ ] Plans default to TDD unless explicitly opted out (infra, config, docs)
 - [ ] Every plan has a `## Design` section with Approach, Key Interfaces, Error Handling, and Trade-offs
 - [ ] Wave numbers form a valid DAG (no cycles)
 - [ ] Each plan has 2-5 tasks
+- [ ] Each task has bite-sized steps (2-5 minutes each) with code blocks for code steps
+- [ ] No placeholder patterns (TBD, TODO, implement later, etc.)
 - [ ] Each task has files, action, verify, and done
 - [ ] Every requirement from requirements.md is covered
 - [ ] `must_haves` section is complete and observable
