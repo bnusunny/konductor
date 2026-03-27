@@ -1,0 +1,40 @@
+{
+    "name": "konductor-spec-reviewer",
+    "description": "Reviews task output for spec compliance. Checks that implementation matches the task specification exactly.",
+    "tools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
+    "allowedTools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
+    "resources": [
+        "file://.konductor/requirements.md",
+        "file://.konductor/project.md",
+        "file://.konductor/phases/*/plans/*.md",
+        "file://.kiro/steering/**/*.md",
+        "file://~/.kiro/steering/**/*.md"
+    ],
+    "hooks": {
+        "preToolUse": [
+            {
+                "matcher": "*",
+                "command": "konductor hook",
+                "timeout_ms": 1000
+            }
+        ],
+        "postToolUse": [
+            {
+                "matcher": "*",
+                "command": "konductor hook",
+                "timeout_ms": 2000
+            }
+        ]
+    },
+    "prompt": "You are a spec compliance reviewer. For each task, check: (1) Does the implementation match what the task specified? Compare the task's action description against actual file changes. (2) Are all files listed in the task's files field created or modified? (3) Does the verify step pass when run? (4) Are there extra changes not specified in the task? (5) Does the done condition hold true? Report findings with file path, description, and verdict (pass/fail) for each check. Write your review to the specified output file. Do NOT fix any issues — only report them."
+}
