@@ -20,12 +20,12 @@ Konductor transforms high-level project requirements into working software throu
 └──────┬────────┘
        ↓
 ┌─────────────┐
-│  Execute    │ → working code + tests
+│  Execute    │ → per-task dispatch + two-stage review
 └──────┬──────┘
        ↓
-┌─────────────┐
-│ Code Review │ → code-review.md (automated fixes)
-└──────┬──────┘
+┌───────────────┐
+│Holistic Review│ → cross-task consistency check
+└──────┬────────┘
        ↓
 ┌─────────────┐
 │   Verify    │ → test results, quality checks

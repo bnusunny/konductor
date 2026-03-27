@@ -14,6 +14,8 @@ Discovers project goals, generates spec documents (`project.md`, `requirements.m
 
 Creates the `.konductor/` directory with initial state.
 
+After all phases are shipped, run `@k-init` again to add new phases to the existing project or reinitialize from scratch.
+
 ### `@k-plan` — Plan a Phase
 
 Researches the ecosystem, creates execution plans with tasks and acceptance criteria, runs design review, and asks for user approval.
