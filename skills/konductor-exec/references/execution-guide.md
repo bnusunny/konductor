@@ -1,20 +1,22 @@
 # Execution Guide — For Konductor Executor Agents
 
-This guide is for executor subagents that implement individual plans. You are responsible for executing one plan from start to finish.
+This guide is for executor subagents that implement individual tasks. You are responsible for executing one task and writing a per-task summary.
 
 ## Your Role
 
 You are a **konductor-executor** agent. You receive:
-- A plan file with tasks to complete
+- A plan file (for context on the overall goal and prior tasks)
+- A specific task number to execute
+- Summaries from prior completed tasks in this plan (for context)
 - Git configuration (auto-commit, branching strategy)
 - Reference to this guide
 
 Your job:
-1. Read and understand the plan
-2. Execute each task in order
+1. Read and understand the assigned task
+2. Execute the task
 3. Write tests when required (TDD plans)
 4. Commit changes following the protocol
-5. Write a summary when done
+5. Write a per-task summary with your status
 
 ## Deviation Rules
 
@@ -120,14 +122,10 @@ Make commits atomic and descriptive. Follow this protocol for every commit.
 
 ### Commit Frequency
 
-**One commit per task** (preferred):
-- After completing each task, commit the changes
+**One commit per task** (required):
+- After completing your assigned task, commit the changes
 - Keeps history granular and reviewable
 - Easier to roll back individual changes
-
-**Exceptions:**
-- If tasks are tightly coupled and splitting commits would break functionality, combine them
-- Always explain in the commit body why tasks were combined
 
 ### Staging Files
 
@@ -201,84 +199,144 @@ Check `config.toml` field `git.auto_commit`:
 - Reading referenced interfaces from dependencies (doesn't count)
 - First-time codebase exploration at start of plan (first 3 reads don't count)
 
+## Implementer Status Protocol
+
+After completing a task (or failing to), report exactly one of these four statuses in your summary file. The orchestrator uses your status to decide what happens next.
+
+### DONE
+
+Task completed successfully. All files created/modified, tests pass, verify step satisfied.
+
+**Orchestrator action:** Proceed to spec review, then code quality review.
+
+### DONE_WITH_CONCERNS
+
+Task completed, but you have doubts or observations the orchestrator should know about.
+
+**Orchestrator triage:**
+- **Actionable concerns** (potential correctness issues, security risks, spec deviations) → orchestrator dispatches an executor to address them before proceeding to review.
+- **Informational concerns** (considered alternative approach, style preferences, future improvement ideas) → orchestrator proceeds directly to review.
+
+**Examples of actionable concerns:**
+- "The spec says validate email format, but I used a simple regex that may miss edge cases"
+- "This endpoint accepts user input without rate limiting"
+- "The plan says return 404, but the existing codebase returns 204 for missing resources"
+
+**Examples of informational concerns:**
+- "Considered using a builder pattern but kept it simple per the plan"
+- "This function could be split further in a future refactor"
+
+### NEEDS_CONTEXT
+
+You cannot complete the task because information is missing. Be specific about what you need.
+
+**Orchestrator action:** Provide the missing context and re-dispatch you. Maximum 2 retries — if still blocked after 2 attempts, escalate to user.
+
+**Your summary must include a `## Missing Context` section listing exactly what you need.**
+
+### BLOCKED
+
+You cannot complete the task due to a technical or architectural issue.
+
+**Orchestrator assessment:**
+- **Context problem** → provide context and re-dispatch
+- **Task too complex** → split into smaller tasks
+- **Plan wrong** → escalate to user
+
+**Your summary must include a `## Blocker` section describing the issue.**
+
+**Default rule:** If you encounter an issue you cannot classify into the other three statuses, use BLOCKED with a description.
+
 ## Summary Writing
 
-After completing all tasks (or encountering a blocker), write a summary file.
+After completing each task (or encountering a blocker), write a per-task summary file.
 
-**File location:** `.konductor/phases/{phase}/plans/{plan-number}-summary.md`
+**File location:** `.konductor/phases/{phase}/plans/{plan}-task-{n}-summary.md`
 
 **File name examples:**
-- `001-summary.md`
-- `002-summary.md`
-- `010-summary.md`
+- `001-task-1-summary.md` — Plan 001, Task 1
+- `001-task-2-summary.md` — Plan 001, Task 2
+- `003-task-1-summary.md` — Plan 003, Task 1
 
 ### Summary Structure
 
 ```markdown
-# Plan {plan-number} Summary
+# Plan {plan} — Task {n} Summary
 
-## Status
-[Completed | Blocked | Partial]
+## Status: DONE
 
 ## Files Created
 - `src/models/user.rs` — User struct with password hashing
-- `src/db/migrations/001_users.sql` — Users table migration
 
 ## Files Modified
-- `src/routes/auth.rs` — Added registration endpoint
 - `Cargo.toml` — Added bcrypt dependency
 
 ## Tests Added
 - `user::test_password_hashing` — Verifies bcrypt integration
-- `auth::test_registration_endpoint` — Verifies POST /auth/register
 
 ### Test Results
 ```
 cargo test user
-   Compiling auth-system v0.1.0
-    Finished test [unoptimized + debuginfo] target(s) in 2.3s
-     Running unittests (target/debug/deps/auth_system-abc123)
-running 2 tests
+running 1 test
 test user::test_password_hashing ... ok
-test auth::test_registration_endpoint ... ok
-
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 1 passed; 0 failed
 ```
 
 ## Deviations from Plan
-1. **Rule 1:** Fixed type error in existing auth routes that prevented compilation
-2. **Rule 2:** Added email validation to registration endpoint (plan didn't specify)
-3. **Rule 3:** Added bcrypt to Cargo.toml (plan assumed it was already present)
+1. **Rule 3:** Added bcrypt to Cargo.toml (plan assumed it was already present)
 
 ## Decisions Made
-- Used bcrypt cost factor of 12 (industry standard for password hashing)
-- Made password_hash field private to prevent accidental exposure
-- Added index on users.email for faster lookups during login
-
-## Blockers Encountered
-None. All tasks completed successfully.
+- Used bcrypt cost factor of 12 (industry standard)
 
 ## Verification
-All must_haves from plan frontmatter verified:
-- [x] Users can register with email and password (POST /auth/register returns 201)
-- [x] Passwords are hashed with bcrypt (verified in test)
-- [x] User model imported by auth routes (compiler confirms)
+- [x] User model exists with password hashing (compiler confirms)
+```
+
+### Conditional Sections by Status
+
+Include these sections only when the status requires them:
+
+**DONE_WITH_CONCERNS** — add `## Concerns`:
+```markdown
+## Status: DONE_WITH_CONCERNS
+
+## Concerns
+- Email validation uses a simple regex that may miss edge cases (potential correctness issue)
+- Considered using a builder pattern but kept it simple per the plan (informational)
+```
+
+**NEEDS_CONTEXT** — add `## Missing Context`:
+```markdown
+## Status: NEEDS_CONTEXT
+
+## Missing Context
+- What authentication strategy does the existing codebase use? (JWT vs sessions)
+- Is there an existing User type in `src/models/` that should be extended?
+```
+
+**BLOCKED** — add `## Blocker`:
+```markdown
+## Status: BLOCKED
+
+## Blocker
+The plan requires adding a DynamoDB table, but the SAM template uses a format incompatible with the existing deployment pipeline. This is an architectural decision (Rule 4).
 ```
 
 ### Summary Requirements
 
 Your summary MUST include:
-- **Status:** One of [Completed, Blocked, Partial]
-- **Files created:** List with brief descriptions
-- **Files modified:** List with brief descriptions
-- **Tests added:** Test names and what they verify
-- **Test results:** Actual output from test runner (paste full output)
+- **Status:** One of DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT, BLOCKED
+- **Files created:** List with brief descriptions (if any)
+- **Files modified:** List with brief descriptions (if any)
+- **Tests added:** Test names and what they verify (if any)
+- **Test results:** Actual output from test runner (if tests were run)
 - **Deviations:** Every deviation with rule number and explanation
 - **Decisions:** Technical choices you made
-- **Blockers:** Any issues that stopped you (or "None")
-- **Verification:** Checklist of must_haves from plan frontmatter
+- **Verification:** Checklist of task verify/done criteria from the plan
 
-**If blocked:** Explain clearly what stopped you and what information or decision is needed to proceed.
+**Conditional sections:** Include Concerns, Missing Context, or Blocker as required by your status.
+
+**Note:** After both spec compliance and code quality reviews pass, the orchestrator appends `## Review Status: passed` to your summary file. You do not write this field yourself — it is managed by the orchestrator.
 
 ## Working with TDD Plans
 
