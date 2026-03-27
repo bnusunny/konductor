@@ -90,36 +90,61 @@ The phase is ready for execution. Run the **Execution Pipeline**:
 3. Group plans by wave number (wave 1 first, then 2, etc.).
 4. Call `state_transition` with `step = "executing"`.
 
-5. **For each wave** (in order):
-   Update wave tracking as needed.
+5. **Per-Task Wave Execution Loop:**
 
-   **If `max_wave_parallelism > 1` (parallel mode):**
-   For each plan in this wave, use the **konductor-executor** agent to execute it. Launch all plans in the wave simultaneously. Each executor receives:
-   - Its specific plan file path
-   - Whether to auto-commit (`git.auto_commit`)
-   - The branching strategy (`git.branching_strategy`)
-   - Reference: see `references/execution-guide.md` in the konductor-exec skill
-   Wait for ALL executors to complete (check for summary files).
+   For each wave (in ascending order):
 
-   **If `max_wave_parallelism = 1` (sequential mode):**
-   Execute plans one at a time, in order within the wave.
+   For each plan in the wave (parallel if `max_wave_parallelism > 1`, sequential otherwise):
+   Parse the plan's `## Tasks` section to extract individual tasks. For each task (sequential within a plan):
 
-   After each wave completes, track progress.
+   **5a. Dispatch executor:**
+   Spawn a fresh **konductor-executor** agent with:
+   - The plan file path and the specific task number to execute
+   - Summaries from prior completed tasks in this plan (for context)
+   - Git config: `git.auto_commit` and `git.branching_strategy`
+   - Reference: see `references/execution-guide.md` in the konductor-exec skill (status protocol, deviation rules)
+   Wait for `{plan}-task-{n}-summary.md` in `.konductor/phases/{phase}/plans/`.
 
-6. Write `.konductor/.results/execute-{phase}-plan-{n}.toml` for each completed plan.
-7. **Code Review** (if `config.toml` `features.code_review = true`):
-   Spawn **konductor-code-reviewer** agent with: `.konductor/.tracking/modified-files.log`, all `*-summary.md` files from plans directory, phase name. The reviewer writes `.konductor/phases/{phase}/code-review.md`.
-   If issues found: spawn a **konductor-executor** agent with the issues to fix them, then re-run the reviewer. Maximum 3 review-fix iterations. If still unresolved, call `state_add_blocker` and report to user.
-8. Call `state_transition` with `step = "executed"`.
-9. Tell the user: "Phase {phase} executed. N plans completed. Say 'next' to verify."
+   **5b. Handle implementer status:**
+   Read the `## Status` field from the task summary:
+   - **DONE** → proceed to 5c (two-stage review).
+   - **DONE_WITH_CONCERNS** → read `## Concerns`. If concerns mention correctness issues, security risks, or spec deviations: dispatch a fresh **konductor-executor** to address them, then proceed to 5c. If concerns are informational (style preferences, alternative approaches considered): proceed to 5c.
+   - **NEEDS_CONTEXT** → read `## Missing Context`, provide the requested information, re-dispatch a fresh executor for the same task. Maximum 2 retries. If still NEEDS_CONTEXT after retries, treat as BLOCKED.
+   - **BLOCKED** → read `## Blocker`. Call `state_add_blocker` with the blocker description. If 3 or more tasks in this phase have been BLOCKED, trigger circuit breaker: stop execution entirely and report all blockers to the user. Otherwise continue with the next task.
+
+   **5c. Two-stage review** (if `config.toml` `features.code_review = true`; skip both stages if disabled):
+
+   **Stage 1 — Spec Compliance:**
+   Spawn **konductor-spec-reviewer** with the task spec (from the plan file), the task summary, and modified files. The reviewer writes `{plan}-task-{n}-spec-review.md`.
+   If issues found: spawn a fresh **konductor-executor** with the issues to fix, then re-run the spec reviewer. Maximum 2 iterations.
+
+   **Stage 2 — Code Quality:**
+   Spawn **konductor-code-reviewer** with the task summary, modified files, and git diff for the task. The reviewer writes `{plan}-task-{n}-quality-review.md`.
+   If issues found: spawn a fresh **konductor-executor** with the issues to fix, then re-run the quality reviewer. Maximum 2 iterations.
+
+   After both stages pass: append `## Review Status: passed` to the task summary file. Mark task complete.
+
+   **5d. Write result file** after each plan completes (all tasks done):
+   Write `.konductor/.results/execute-{phase}-plan-{n}.toml` with status and timestamp.
+
+6. **Phase-Level Code Review** (optional holistic final pass, if `config.toml` `features.code_review = true`):
+   Per-task reviews have already been performed. This step checks cross-task consistency (shared interfaces, naming conventions, integration points).
+   Spawn **konductor-code-reviewer** with `.konductor/.tracking/modified-files.log`, all task summary files, and phase name. The reviewer writes `.konductor/phases/{phase}/code-review.md`.
+   If significant cross-task issues found: spawn a **konductor-executor** to fix, then re-review. Maximum 3 iterations. If still unresolved, call `state_add_blocker` and report to user.
+7. Call `state_transition` with `step = "executed"`.
+8. Tell the user: "Phase {phase} executed. N plans completed. Say 'next' to verify."
 
 ### Case: `step = "executing"`
 
-Execution was interrupted. Resume:
-1. Check which `{plan}-summary.md` files exist in `.konductor/phases/{phase}/plans/`.
-2. Plans with summaries are complete — skip them.
-3. Resume from the first incomplete plan in the current wave.
-4. Continue the Execution Pipeline from step 5 above.
+Execution was interrupted. Resume at task-level granularity:
+1. Scan `.konductor/phases/{phase}/plans/` for `{plan}-task-{n}-summary.md` files.
+2. A task is complete only when BOTH conditions are met:
+   - Its summary file exists with `## Status: DONE`
+   - The summary contains `## Review Status: passed` (added by the orchestrator after both review stages pass)
+3. A plan is complete when ALL its tasks meet the above definition.
+4. Check for any tasks with `## Status: NEEDS_CONTEXT` or `## Status: BLOCKED` — report these to the user before resuming.
+5. Resume from the first incomplete task in the first incomplete plan of the current wave.
+6. Continue the Execution Pipeline from step 5 above.
 
 ### Case: `step = "executed"`
 
