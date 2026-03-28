@@ -1,6 +1,6 @@
 {
     "name": "konductor",
-    "description": "Spec-driven development orchestrator. Manages project spec, phase design, planning, execution, verification, and shipping. Use @k-spec, @k-design, @k-plan, @k-exec, @k-verify, @k-next, @k-status, or other prompts to trigger commands.",
+    "description": "Spec-driven development orchestrator. Manages project spec, phase design, planning, execution, verification, and shipping. Use /k-spec, /k-design, /k-plan, /k-exec, /k-verify, /k-next, /k-status, or other prompts to trigger commands.",
     "model": "claude-opus-4.6-1m",
     "tools": [
         "@builtin",

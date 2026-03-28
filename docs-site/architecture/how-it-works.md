@@ -10,7 +10,7 @@ The main `konductor` agent manages pipeline state and delegates work to speciali
 
 A local MCP server provides typed prompts and tools over stdio:
 
-- **12 prompts** with Tab-completable shortcuts (`@k-spec`, `@k-design`, `@k-plan`, etc.) — with typed arguments where needed
+- **12 prompts** with Tab-completable shortcuts (`/k-spec`, `/k-design`, `/k-plan`, etc.) — with typed arguments where needed
 - **State management tools** (`state_get`, `state_transition`, `state_add_blocker`, `state_resolve_blocker`) — eliminates fragile LLM-generated TOML
 - **Config tools** (`config_get`, `config_init`) — typed config access with defaults applied
 - **Query tools** (`plans_list`, `status`) — returns structured JSON instead of requiring the LLM to parse files

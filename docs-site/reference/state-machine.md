@@ -32,8 +32,8 @@ blocked ──→ executed
 
 | From | To | When |
 |------|----|------|
-| `specced` | `discussed` | User runs `@k-discuss` to set preferences |
-| `specced` | `designed` | User runs `@k-design` (skipping discuss) |
+| `specced` | `discussed` | User runs `/k-discuss` to set preferences |
+| `specced` | `designed` | User runs `/k-design` (skipping discuss) |
 | `discussed` | `designed` | Design completes after discuss |
 | `designed` | `planned` | Task planning completes |
 | `planned` | `executing` | Execution begins |

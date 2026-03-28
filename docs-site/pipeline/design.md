@@ -17,8 +17,8 @@ Creates the phase-level architecture, component interactions, and key technical 
 ## Usage
 
 ```
-> @k-design 01
+> /k-design 01
 ```
 
 !!! tip
-    Run `@k-discuss` before `@k-design` to set preferences for library choices, architectural trade-offs, and constraints.
+    Run `/k-discuss` before `/k-design` to set preferences for library choices, architectural trade-offs, and constraints.

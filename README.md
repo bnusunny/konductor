@@ -34,32 +34,32 @@ kiro-cli --agent konductor
 Define your project spec:
 
 ```
-> @k-spec
+> /k-spec
 ```
 
 Advance through the pipeline:
 
 ```
-> @k-next
-> @k-next
-> @k-next
+> /k-next
+> /k-next
+> /k-next
 ```
 
 Check current status:
 
 ```
-> @k-status
+> /k-status
 ```
 
 Run specific steps:
 
 ```
-> @k-design 01
-> @k-plan 01
-> @k-review 01
-> @k-exec
-> @k-verify
-> @k-ship
+> /k-design 01
+> /k-plan 01
+> /k-review 01
+> /k-exec
+> /k-verify
+> /k-ship
 ```
 
 ## Pipeline Diagram
@@ -94,19 +94,21 @@ Run specific steps:
 
 | Command | Prompt Shortcut | Description |
 |---------|----------------|-------------|
-| `spec` | `@k-spec` | Define project requirements, generate spec docs (alias: `@k-init`) |
-| `design` | `@k-design` | Create phase-level architecture and design |
-| `plan` | `@k-plan` | Break design into execution plans with tasks |
-| `review` | `@k-review` | Review design and plans before execution |
-| `next` | `@k-next` | Advance to the next pipeline step automatically |
-| `exec` | `@k-exec` | Execute tasks for current phase (TDD workflow) |
-| `verify` | `@k-verify` | Run tests and validate acceptance criteria |
-| `status` | `@k-status` | Show current phase, progress, and next steps |
-| `ship` | `@k-ship` | Commit work, create release notes, open PR |
-| `discuss` | `@k-discuss` | Ask questions about the project, codebase, or pipeline |
-| `map-codebase` | `@k-map` | Analyze existing code structure, patterns, and conventions |
+| `spec` | `/k-spec` | Define project requirements, generate spec docs (alias: `/k-init`) |
+| `design` | `/k-design` | Create phase-level architecture and design |
+| `plan` | `/k-plan` | Break design into execution plans with tasks |
+| `review` | `/k-review` | Review design and plans before execution |
+| `next` | `/k-next` | Advance to the next pipeline step automatically |
+| `exec` | `/k-exec` | Execute tasks for current phase (TDD workflow) |
+| `verify` | `/k-verify` | Run tests and validate acceptance criteria |
+| `status` | `/k-status` | Show current phase, progress, and next steps |
+| `ship` | `/k-ship` | Commit work, create release notes, open PR |
+| `discuss` | `/k-discuss` | Ask questions about the project, codebase, or pipeline |
+| `map-codebase` | `/k-map` | Analyze existing code structure, patterns, and conventions |
 
-> **Tip:** Type `@k-` then press Tab to autocomplete any Konductor command.
+> **Tip:** Type `/k-` then press Tab to autocomplete any Konductor command.
+>
+> **Note:** Both `/k-*` and `@k-*` prefixes work. The `/` prefix is recommended for Kiro CLI v2 TUI mode.
 
 ## MCP Tools
 
@@ -130,7 +132,7 @@ The main `konductor` agent manages pipeline state and delegates work to speciali
 
 **2. MCP Server (`konductor mcp`)**
 A local MCP server provides:
-- 12 prompts with Tab-completable shortcuts (`@k-spec`, `@k-design`, `@k-plan`, etc.) — with typed arguments where needed
+- 12 prompts with Tab-completable shortcuts (`/k-spec`, `/k-design`, `/k-plan`, etc.) — with typed arguments where needed
 - State management tools (`state_get`, `state_transition`, `state_add_blocker`, `state_resolve_blocker`) — eliminates fragile LLM-generated TOML
 - Query tools (`plans_list`, `status`) — returns structured JSON instead of requiring the LLM to parse files
 
