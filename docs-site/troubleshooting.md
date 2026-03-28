@@ -7,7 +7,7 @@
 **Fix:** Initialize the project:
 
 ```
-> @k-spec
+> /k-spec
 ```
 
 ## "Invalid transition: 'X' → 'Y'"
@@ -17,13 +17,13 @@
 **Fix:** Check your current state:
 
 ```
-> @k-status
+> /k-status
 ```
 
 Then use the appropriate command. For example, if you're at `initialized`, you need to plan before executing:
 
 ```
-> @k-plan 01
+> /k-plan 01
 ```
 
 See the [State Machine Reference](reference/state-machine.md) for all valid transitions.
@@ -65,7 +65,7 @@ rm .konductor/state.toml
 Then re-spec:
 
 ```
-> @k-spec
+> /k-spec
 ```
 
 !!! warning
@@ -78,7 +78,7 @@ Then re-spec:
 **Fix:** Check the blocker details:
 
 ```
-> @k-status
+> /k-status
 ```
 
 The status output shows active blockers with their reasons. After fixing the underlying issue, say `next` to continue — the orchestrator will resolve the blocker and resume.

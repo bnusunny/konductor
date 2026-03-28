@@ -8,7 +8,10 @@ kiro-cli --agent konductor
 
 ## Define Your Project Spec
 
-Type `@k-spec` (or `@k-init`), or simply type:
+Type `/k-spec` (or `/k-init`), or simply type:
+
+!!! note
+    Both `/k-*` and `@k-*` prefixes work. The `/` prefix is recommended for Kiro CLI v2 TUI mode.
 
 ```
 > spec my project
@@ -22,7 +25,7 @@ Konductor will interview you to understand your project goals, then generate:
 
 ## Advance Through the Pipeline
 
-Use `@k-next` (or type `next`) to move through each step automatically:
+Use `/k-next` (or type `next`) to move through each step automatically:
 
 ```
 > next
@@ -31,39 +34,39 @@ Use `@k-next` (or type `next`) to move through each step automatically:
 Or run specific steps using prompt shortcuts:
 
 ```
-> @k-design 01
-> @k-plan 01
-> @k-review 01
-> @k-exec
-> @k-verify
-> @k-ship
+> /k-design 01
+> /k-plan 01
+> /k-review 01
+> /k-exec
+> /k-verify
+> /k-ship
 ```
 
 ## Check Status
 
 ```
-> @k-status
+> /k-status
 ```
 
 Shows current phase, progress, and next steps.
 
 ## All Prompt Shortcuts
 
-Type `@k-` then press Tab to see all available commands:
+Type `/k-` then press Tab to see all available commands:
 
 | Shortcut | Description |
 |----------|-------------|
-| `@k-spec` | Define project requirements (alias: `@k-init`) |
-| `@k-design` | Create architecture for a phase |
-| `@k-plan` | Break design into execution plans |
-| `@k-review` | Review design and plans |
-| `@k-exec` | Execute the current phase |
-| `@k-verify` | Verify the current phase |
-| `@k-ship` | Ship and finalize |
-| `@k-next` | Advance to next step |
-| `@k-status` | Show project status |
-| `@k-discuss` | Discuss a phase (requires phase number) |
-| `@k-map` | Map the existing codebase |
+| `/k-spec` | Define project requirements (alias: `/k-init`) |
+| `/k-design` | Create architecture for a phase |
+| `/k-plan` | Break design into execution plans |
+| `/k-review` | Review design and plans |
+| `/k-exec` | Execute the current phase |
+| `/k-verify` | Verify the current phase |
+| `/k-ship` | Ship and finalize |
+| `/k-next` | Advance to next step |
+| `/k-status` | Show project status |
+| `/k-discuss` | Discuss a phase (requires phase number) |
+| `/k-map` | Map the existing codebase |
 
 ## Pipeline Flow
 

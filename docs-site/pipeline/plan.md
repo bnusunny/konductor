@@ -25,8 +25,8 @@ Each plan file contains:
 ## Usage
 
 ```
-> @k-plan 01
+> /k-plan 01
 ```
 
 !!! tip
-    After planning, run `@k-review` to review the design and plans before execution.
+    After planning, run `/k-review` to review the design and plans before execution.

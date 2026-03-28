@@ -41,5 +41,5 @@ Set `features.design_review = false` in `config.toml` to skip review.
 ## Usage
 
 ```
-> @k-review 01
+> /k-review 01
 ```

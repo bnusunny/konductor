@@ -6,7 +6,7 @@ Analyzes the ecosystem, codebase, and dependencies before design begins.
 
 1. The `konductor-researcher` agent receives the phase goal, success criteria, and relevant requirements
 2. It analyzes the codebase, maps dependencies, and identifies patterns and conventions
-3. If a `context.md` exists from a prior `@k-discuss` session, user decisions are included
+3. If a `context.md` exists from a prior `/k-discuss` session, user decisions are included
 4. Outputs a research document that feeds into the design step
 
 ## Output
@@ -28,4 +28,4 @@ Set `features.research = false` in `config.toml` to skip discovery and go straig
 
 ## Usage
 
-Discover is triggered automatically by `@k-design` or `@k-next`. It is not a standalone command.
+Discover is triggered automatically by `/k-design` or `/k-next`. It is not a standalone command.
