@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/bnusunny/konductor/compare/v0.13.0...v0.14.0) (2026-03-28)
+
+
+### Features
+
+* rename pipeline phases to match traditional software dev terminology ([#77](https://github.com/bnusunny/konductor/issues/77)) ([f34d21c](https://github.com/bnusunny/konductor/commit/f34d21c9cf34bf22716497a42332e489b832b693))
+
 ## [0.13.0](https://github.com/bnusunny/konductor/compare/v0.12.4...v0.13.0) (2026-03-27)
 
 
