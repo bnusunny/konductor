@@ -7,7 +7,7 @@
 **Fix:** Initialize the project:
 
 ```
-> @k-init
+> @k-spec
 ```
 
 ## "Invalid transition: 'X' → 'Y'"
@@ -56,16 +56,16 @@ cargo build --release
 
 **Cause:** `state.toml` contains invalid TOML or unexpected values.
 
-**Fix:** If the state is unrecoverable, delete and re-initialize:
+**Fix:** If the state is unrecoverable, delete and re-spec:
 
 ```bash
 rm .konductor/state.toml
 ```
 
-Then re-initialize:
+Then re-spec:
 
 ```
-> @k-init
+> @k-spec
 ```
 
 !!! warning

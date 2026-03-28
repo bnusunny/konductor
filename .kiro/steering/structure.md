@@ -12,9 +12,11 @@ konductor/
 │   │   └── hook.rs         # Hook event processor
 │   └── tests/              # Rust integration tests
 ├── skills/                 # Skill definitions (markdown)
-│   ├── konductor-init/
+│   ├── konductor-spec/
 │   ├── konductor-discuss/
+│   ├── konductor-design/
 │   ├── konductor-plan/
+│   ├── konductor-review/
 │   ├── konductor-exec/
 │   ├── konductor-verify/
 │   ├── konductor-ship/

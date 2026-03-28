@@ -1,20 +1,20 @@
 ---
-name: konductor-init
-description: Initialize a new Konductor project with spec-driven development. Use when the user says init, initialize, new project, start project, set up konductor, or bootstrap.
+name: konductor-spec
+description: Define project requirements and generate spec documents. Use when the user says spec, define requirements, new project, start project, set up konductor, or bootstrap.
 ---
 
-# Konductor Init — Project Initialization
+# Konductor Spec — Project Requirements
 
-You are the Konductor orchestrator. Initialize a new spec-driven development project.
+You are the Konductor orchestrator. Define project requirements and generate spec documents.
 
 ## Step 1: Check Existing State
 
 Check if `.konductor/` directory already exists.
 - If it exists, call the `state_get` MCP tool. If it returns valid state:
-  - If `current.step` is `"shipped"`: ask the user: "Project is shipped. Do you want to (a) add a new phase to the existing project, or (b) reinitialize from scratch?"
+  - If `current.step` is `"shipped"`: ask the user: "Project is shipped. Do you want to (a) add a new phase to the existing project, or (b) re-spec from scratch?"
     - If (a): ask for the new phase name. Read `.konductor/roadmap.md` to determine the updated `phases_total`. Call the `state_advance_phase` MCP tool with the new phase identifier and updated phases_total. Skip to Step 8 (report success).
-    - If (b): proceed with normal reinitialization below.
-  - Otherwise: warn the user: "A Konductor project already exists here. Reinitializing will overwrite project.md, requirements.md, and roadmap.md. Proceed? (y/n)"
+    - If (b): proceed with normal re-spec below.
+  - Otherwise: warn the user: "A Konductor project already exists here. Re-speccing will overwrite project.md, requirements.md, and roadmap.md. Proceed? (y/n)"
 - If user declines, stop.
 
 ## Step 2: Create Directory Structure
@@ -64,7 +64,7 @@ Call the `state_init` MCP tool with:
 - `phase`: the first phase identifier from the roadmap
 - `phases_total`: the total number of phases from the roadmap
 
-This creates `.konductor/state.toml` with the correct initial structure.
+This creates `.konductor/state.toml` with step `specced`.
 
 Call the `config_init` MCP tool to create `.konductor/config.toml` with defaults.
 
@@ -80,4 +80,4 @@ Create/update `.kiro/steering/` files:
 Tell the user:
 - How many phases were identified in the roadmap
 - List the phase names
-- Suggest: "Say 'next' to start planning phase 1, or 'discuss phase 01' to set preferences first."
+- Suggest: "Say 'next' to start designing phase 1, or 'discuss phase 01' to set preferences first."

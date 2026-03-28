@@ -6,8 +6,9 @@ use std::path::Path;
 const STATE_FILE: &str = ".konductor/state.toml";
 
 const VALID_STEPS: &[&str] = &[
-    "initialized",
+    "specced",
     "discussed",
+    "designed",
     "planned",
     "executing",
     "executed",
@@ -17,17 +18,19 @@ const VALID_STEPS: &[&str] = &[
 ];
 
 const TRANSITIONS: &[(&str, &str)] = &[
-    ("initialized", "discussed"),
-    ("initialized", "planned"),
-    ("discussed", "planned"),
+    ("specced", "discussed"),
+    ("specced", "designed"),
+    ("discussed", "designed"),
+    ("designed", "planned"),
     ("planned", "executing"),
     ("executing", "executed"),
     ("executed", "complete"),
     ("complete", "shipped"),
     // shipped can start a new phase
-    ("shipped", "initialized"),
+    ("shipped", "specced"),
     // blocked can transition back to idle states
-    ("blocked", "initialized"),
+    ("blocked", "specced"),
+    ("blocked", "designed"),
     ("blocked", "planned"),
     ("blocked", "executed"),
 ];
@@ -128,7 +131,7 @@ pub fn init_state(name: &str, phase: &str, phases_total: i64) -> Result<Konducto
         }),
         current: Some(Current {
             phase: Some(phase.to_string()),
-            step: Some("initialized".to_string()),
+            step: Some("specced".to_string()),
             status: Some("idle".to_string()),
             plan: Some(String::new()),
             wave: Some(0),
@@ -233,7 +236,7 @@ pub fn advance_phase(phase: &str, phases_total: i64) -> Result<KonductorState, S
 
     let current = state.current.as_mut().unwrap();
     current.phase = Some(phase.to_string());
-    current.step = Some("initialized".to_string());
+    current.step = Some("specced".to_string());
     current.status = Some("idle".to_string());
     current.plan = Some(String::new());
     current.wave = Some(0);
@@ -267,7 +270,7 @@ mod tests {
             }),
             current: Some(Current {
                 phase: Some("01".into()),
-                step: Some("initialized".into()),
+                step: Some("specced".into()),
                 status: Some("idle".into()),
                 plan: None,
                 wave: None,
@@ -291,30 +294,33 @@ mod tests {
 
     #[test]
     fn test_valid_transitions() {
-        assert!(validate_transition("initialized", "planned").is_ok());
-        assert!(validate_transition("initialized", "discussed").is_ok());
-        assert!(validate_transition("discussed", "planned").is_ok());
+        assert!(validate_transition("specced", "designed").is_ok());
+        assert!(validate_transition("specced", "discussed").is_ok());
+        assert!(validate_transition("discussed", "designed").is_ok());
+        assert!(validate_transition("designed", "planned").is_ok());
         assert!(validate_transition("planned", "executing").is_ok());
         assert!(validate_transition("executing", "executed").is_ok());
         assert!(validate_transition("executed", "complete").is_ok());
         assert!(validate_transition("complete", "shipped").is_ok());
-        assert!(validate_transition("blocked", "initialized").is_ok());
+        assert!(validate_transition("blocked", "specced").is_ok());
+        assert!(validate_transition("blocked", "designed").is_ok());
         assert!(validate_transition("blocked", "planned").is_ok());
         assert!(validate_transition("blocked", "executed").is_ok());
-        assert!(validate_transition("shipped", "initialized").is_ok());
+        assert!(validate_transition("shipped", "specced").is_ok());
     }
 
     #[test]
     fn test_invalid_transitions() {
-        assert!(validate_transition("initialized", "executed").is_err());
+        assert!(validate_transition("specced", "executed").is_err());
         assert!(validate_transition("planned", "complete").is_err());
         assert!(validate_transition("executed", "planned").is_err());
         assert!(validate_transition("executing", "planned").is_err());
+        assert!(validate_transition("specced", "planned").is_err());
     }
 
     #[test]
     fn test_invalid_step() {
-        let err = validate_transition("initialized", "bogus").unwrap_err();
+        let err = validate_transition("specced", "bogus").unwrap_err();
         assert!(err.contains("Invalid step"));
         assert!(err.contains("bogus"));
     }
@@ -362,8 +368,8 @@ mod tests {
     fn test_transition_validates_current_step() {
         // Test that transition logic correctly rejects invalid from→to
         // by testing validate_transition which transition() delegates to
-        assert!(validate_transition("initialized", "executing").is_err());
-        assert!(validate_transition("initialized", "planned").is_ok());
+        assert!(validate_transition("specced", "executing").is_err());
+        assert!(validate_transition("specced", "designed").is_ok());
     }
 
     // -- blocker tests (logic only, no filesystem) --
@@ -529,7 +535,7 @@ mod tests {
 
         let current = s.current.as_mut().unwrap();
         current.phase = Some("10-new-phase".into());
-        current.step = Some("initialized".into());
+        current.step = Some("specced".into());
         current.status = Some("idle".into());
 
         let progress = s.progress.as_mut().unwrap();
@@ -549,8 +555,8 @@ mod tests {
         assert_eq!(loaded.progress.as_ref().unwrap().phases_total, Some(10));
         // Sets new phase
         assert_eq!(loaded.current.as_ref().unwrap().phase, Some("10-new-phase".into()));
-        // Sets initialized step
-        assert_eq!(loaded.current.as_ref().unwrap().step, Some("initialized".into()));
+        // Sets specced step
+        assert_eq!(loaded.current.as_ref().unwrap().step, Some("specced".into()));
         // Preserves blocker history
         assert_eq!(loaded.blockers.len(), 1);
         assert_eq!(loaded.blockers[0].reason, Some("old blocker".into()));
@@ -560,7 +566,7 @@ mod tests {
 
     #[test]
     fn test_advance_phase_rejects_non_shipped() {
-        let state = sample_state(); // step = "initialized"
+        let state = sample_state(); // step = "specced"
         let step = state.current.as_ref().unwrap().step.as_deref().unwrap();
         assert_ne!(step, "shipped");
         // advance_phase would reject this

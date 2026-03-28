@@ -39,7 +39,7 @@ pub struct PhaseArgs {
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct TransitionArgs {
-    #[schemars(description = "Target step (initialized, discussed, planned, executing, executed, complete, shipped)")]
+    #[schemars(description = "Target step (specced, discussed, designed, planned, executing, executed, complete, shipped)")]
     pub step: String,
     #[schemars(description = "Phase to set (optional, defaults to current phase)")]
     pub phase: Option<String>,
@@ -95,19 +95,43 @@ pub struct KonductorMcp {
 
 #[prompt_router]
 impl KonductorMcp {
-    #[prompt(name = "k-init", description = "Initialize a new Konductor project")]
-    async fn prompt_init(&self) -> Vec<PromptMessage> {
+    #[prompt(name = "k-spec", description = "Define project requirements and generate spec documents")]
+    async fn prompt_spec(&self) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            "Initialize this project with Konductor. Detect existing codebase if present, discover project goals through interactive questions, generate spec documents (project.md, requirements.md, roadmap.md), and set up the pipeline. Run the konductor-init skill.",
+            "Define project requirements and generate spec documents. Detect existing codebase if present, discover project goals through interactive questions, generate spec documents (project.md, requirements.md, roadmap.md), and set up the pipeline. Run the konductor-spec skill.",
         )]
     }
 
-    #[prompt(name = "k-plan", description = "Plan a phase for execution")]
+    #[prompt(name = "k-init", description = "Alias for k-spec — define project requirements and generate spec documents")]
+    async fn prompt_init(&self) -> Vec<PromptMessage> {
+        vec![PromptMessage::new_text(
+            PromptMessageRole::User,
+            "Define project requirements and generate spec documents. Detect existing codebase if present, discover project goals through interactive questions, generate spec documents (project.md, requirements.md, roadmap.md), and set up the pipeline. Run the konductor-spec skill.",
+        )]
+    }
+
+    #[prompt(name = "k-design", description = "Create architecture and design for a phase")]
+    async fn prompt_design(&self, Parameters(args): Parameters<PhaseArgs>) -> Vec<PromptMessage> {
+        vec![PromptMessage::new_text(
+            PromptMessageRole::User,
+            format!("Create the architecture and design for phase {}. Research the ecosystem if enabled, produce design.md with component interactions and key decisions. Run the konductor-design skill.", args.phase),
+        )]
+    }
+
+    #[prompt(name = "k-plan", description = "Break a phase design into execution plans with tasks")]
     async fn prompt_plan(&self, Parameters(args): Parameters<PhaseArgs>) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            format!("Plan phase {} for execution. Research the ecosystem, create execution plans with tasks and acceptance criteria, validate them, and run design review if enabled. Run the konductor-plan skill.", args.phase),
+            format!("Break the design for phase {} into execution plans with tasks, acceptance criteria, and wave ordering. Validate plans. Run the konductor-plan skill.", args.phase),
+        )]
+    }
+
+    #[prompt(name = "k-review", description = "Review design and plans before execution")]
+    async fn prompt_review(&self, Parameters(args): Parameters<PhaseArgs>) -> Vec<PromptMessage> {
+        vec![PromptMessage::new_text(
+            PromptMessageRole::User,
+            format!("Review the design and plans for phase {}. Evaluate architectural soundness, feasibility, cross-plan consistency, and requirement coverage. Present findings and ask for user approval. Run the konductor-review skill.", args.phase),
         )]
     }
 
@@ -115,7 +139,7 @@ impl KonductorMcp {
     async fn prompt_exec(&self) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            "Execute the plans for the current phase. Read state to confirm the phase is planned, spawn executor subagents for each plan by wave, and run code review. Run the konductor-exec skill.",
+            "Execute the plans for the current phase. Read state to confirm the phase is planned, dispatch fresh executor per task by wave, and run two-stage review. Run the konductor-exec skill.",
         )]
     }
 
@@ -139,7 +163,7 @@ impl KonductorMcp {
     async fn prompt_next(&self) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            "Determine what needs to happen next based on current state and execute it — planning, execution, verification, or phase advancement. Read state first. Run the konductor-next skill.",
+            "Determine what needs to happen next based on current state and execute it — design, planning, execution, verification, or phase advancement. Read state first. Run the konductor-next skill.",
         )]
     }
 
@@ -155,7 +179,7 @@ impl KonductorMcp {
     async fn prompt_discuss(&self, Parameters(args): Parameters<PhaseArgs>) -> Vec<PromptMessage> {
         vec![PromptMessage::new_text(
             PromptMessageRole::User,
-            format!("Discuss and set context for phase {} before planning. Have a conversation about approach preferences, library choices, architectural trade-offs, and constraints. Decisions are saved to context.md for the planner. Run the konductor-discuss skill.", args.phase),
+            format!("Discuss and set context for phase {} before design. Have a conversation about approach preferences, library choices, architectural trade-offs, and constraints. Decisions are saved to context.md for the designer. Run the konductor-discuss skill.", args.phase),
         )]
     }
 
@@ -301,8 +325,9 @@ impl KonductorMcp {
 
         let step = current.and_then(|c| c.step.as_deref()).unwrap_or("unknown");
         let next_suggestion = match step {
-            "initialized" => "Say 'next' to start planning, or 'discuss' to set preferences first.",
-            "discussed" => "Say 'next' to begin planning.",
+            "specced" => "Say 'next' to start design, or 'discuss' to set preferences first.",
+            "discussed" => "Say 'next' to begin design.",
+            "designed" => "Say 'next' to create execution plans.",
             "planned" => "Say 'exec' to execute the plans.",
             "executing" => "Execution in progress. Wait for completion or check logs.",
             "executed" => "Say 'next' to verify the phase.",

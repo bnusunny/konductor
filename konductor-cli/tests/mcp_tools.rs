@@ -54,7 +54,7 @@ initialized = "2026-01-01T00:00:00Z"
 
 [current]
 phase = "01"
-step = "initialized"
+step = "specced"
 status = "idle"
 plan = ""
 wave = 0
@@ -79,7 +79,7 @@ async fn test_state_get_returns_state() -> Result<()> {
     let text = tool_text(&result);
     let parsed: serde_json::Value = serde_json::from_str(&text)?;
     assert_eq!(parsed["project"]["name"], "test-project");
-    assert_eq!(parsed["current"]["step"], "initialized");
+    assert_eq!(parsed["current"]["step"], "specced");
     client.cancel().await?;
     Ok(())
 }
@@ -119,12 +119,12 @@ async fn test_state_transition_valid() -> Result<()> {
     let result = client
         .call_tool(call_tool(
             "state_transition",
-            Some(serde_json::json!({"step": "planned"})),
+            Some(serde_json::json!({"step": "designed"})),
         ))
         .await?;
     let text = tool_text(&result);
     let parsed: serde_json::Value = serde_json::from_str(&text)?;
-    assert_eq!(parsed["current"]["step"], "planned");
+    assert_eq!(parsed["current"]["step"], "designed");
     assert_eq!(parsed["current"]["status"], "idle");
     client.cancel().await?;
     Ok(())
@@ -237,7 +237,7 @@ async fn test_status_returns_report() -> Result<()> {
     let parsed: serde_json::Value = serde_json::from_str(&text)?;
     assert_eq!(parsed["project"], "test-project");
     assert_eq!(parsed["current_phase"], "01");
-    assert_eq!(parsed["current_step"], "initialized");
+    assert_eq!(parsed["current_step"], "specced");
     assert!(parsed["next_suggestion"].as_str().unwrap().contains("next"));
     client.cancel().await?;
     Ok(())

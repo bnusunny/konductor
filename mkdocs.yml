@@ -35,10 +35,11 @@ nav:
     - Quick Start: getting-started/quickstart.md
   - Pipeline:
     - Overview: pipeline/overview.md
-    - Initialize: pipeline/initialize.md
-    - Research: pipeline/research.md
+    - Spec: pipeline/spec.md
+    - Discover: pipeline/discover.md
+    - Design: pipeline/design.md
     - Plan: pipeline/plan.md
-    - Design Review: pipeline/design-review.md
+    - Review: pipeline/review.md
     - Execute: pipeline/execute.md
     - Verify: pipeline/verify.md
     - Ship: pipeline/ship.md

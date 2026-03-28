@@ -54,10 +54,10 @@ fn prompt_text(result: &rmcp::model::GetPromptResult) -> String {
 async fn test_list_all_prompts() -> Result<()> {
     let (client, _tmp) = setup_test().await?;
     let prompts = client.list_all_prompts().await?;
-    assert_eq!(prompts.len(), 9, "Expected 9 prompts, got {}", prompts.len());
+    assert_eq!(prompts.len(), 12, "Expected 12 prompts, got {}", prompts.len());
 
     let names: Vec<String> = prompts.iter().map(|p| p.name.to_string()).collect();
-    for expected in ["k-init", "k-plan", "k-exec", "k-verify", "k-ship", "k-next", "k-status", "k-discuss", "k-map"] {
+    for expected in ["k-spec", "k-init", "k-design", "k-plan", "k-review", "k-exec", "k-verify", "k-ship", "k-next", "k-status", "k-discuss", "k-map"] {
         assert!(names.contains(&expected.to_string()), "Missing prompt: {expected}");
     }
 
@@ -72,7 +72,7 @@ async fn test_prompt_k_init() -> Result<()> {
     let (client, _tmp) = setup_test().await?;
     let result = client.get_prompt(get_prompt("k-init", None)).await?;
     let text = prompt_text(&result);
-    assert!(text.contains("Initialize"), "k-init should contain 'Initialize': {text}");
+    assert!(text.contains("spec"), "k-init should contain 'spec': {text}");
     client.cancel().await?;
     Ok(())
 }
@@ -147,7 +147,7 @@ async fn test_prompt_k_plan_with_phase() -> Result<()> {
         .await?;
     let text = prompt_text(&result);
     assert!(text.contains("01"), "k-plan should contain phase '01': {text}");
-    assert!(text.contains("Plan"), "k-plan should contain 'Plan': {text}");
+    assert!(text.contains("plan"), "k-plan should contain 'plan': {text}");
     client.cancel().await?;
     Ok(())
 }

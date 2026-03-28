@@ -1,15 +1,15 @@
 # Konductor
 
-**Spec-driven development for Kiro CLI** — orchestrates project planning, execution, verification, and shipping through a structured pipeline.
+**Spec-driven development for Kiro CLI** — orchestrates project spec, design, planning, execution, verification, and shipping through a structured pipeline.
 
-| Phase | Description |
-|-------|-------------|
-| 🚀 **Initialize** | Discover goals, generate specs |
-| 🔍 **Research** | Analyze codebase, map patterns |
-| 📋 **Plan** | Break work into phases with strict task granularity |
-| 🔎 **Design Review** | Review architecture before execution |
+| Step | Description |
+|------|-------------|
+| 🚀 **Spec** | Discover goals, generate requirements |
+| 🔍 **Discover** | Analyze codebase, map patterns (optional) |
+| 📐 **Design** | Create architecture and key decisions |
+| 📋 **Plan** | Break design into tasks with strict granularity |
+| 🔎 **Review** | Review design and plans before execution |
 | 💻 **Execute** | Per-task dispatch with TDD workflow |
-| 🧐 **Two-Stage Review** | Spec compliance + code quality per task |
 | ✅ **Verify** | Validate tests and quality gates |
 | 🚢 **Ship** | Commit, release, move to next phase |
 
@@ -35,11 +35,9 @@ kiro-cli --agent konductor
 ```
 
 ```
-> initialize my project
+> spec my project
 > next
 > status
 ```
 
 [Get Started →](getting-started/installation.md){ .md-button .md-button--primary }
-
-
