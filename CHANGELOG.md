@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/bnusunny/konductor/compare/v0.14.0...v0.15.0) (2026-03-28)
+
+
+### Features
+
+* update prompt prefix references from [@k](https://github.com/k)- to /k- for Kiro CLI v2 TUI mode ([#79](https://github.com/bnusunny/konductor/issues/79)) ([85e8d51](https://github.com/bnusunny/konductor/commit/85e8d51f2cca09b404cee6bf7ec2b45bde400bed))
+
 ## [0.14.0](https://github.com/bnusunny/konductor/compare/v0.13.0...v0.14.0) (2026-03-28)
 
 
