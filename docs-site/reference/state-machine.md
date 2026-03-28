@@ -6,9 +6,10 @@ Konductor manages pipeline progress through a state machine stored in `.konducto
 
 | Step | Description |
 |------|-------------|
-| `initialized` | Project initialized, specs generated. Ready for planning. |
-| `discussed` | User preferences captured for the current phase. Ready for planning. |
-| `planned` | Phase plans created and validated. Ready for execution. |
+| `specced` | Project spec complete, requirements generated. Ready for design. |
+| `discussed` | User preferences captured for the current phase. Ready for design. |
+| `designed` | Phase architecture created. Ready for task planning. |
+| `planned` | Execution plans created and validated. Ready for review and execution. |
 | `executing` | Plans are being executed by subagents. |
 | `executed` | All plans completed. Ready for verification. |
 | `complete` | Phase verified and done. Ready to advance to next phase. |
@@ -18,31 +19,34 @@ Konductor manages pipeline progress through a state machine stored in `.konducto
 ## Valid Transitions
 
 ```
-initialized ──→ discussed ──→ planned ──→ executing ──→ executed ──→ complete ──→ shipped
-     │                           ↑
-     └───────────────────────────┘
-              (skip discuss)
+specced ──→ discussed ──→ designed ──→ planned ──→ executing ──→ executed ──→ complete ──→ shipped
+   │                         ↑
+   └─────────────────────────┘
+          (skip discuss)
 
-blocked ──→ initialized
+blocked ──→ specced
+blocked ──→ designed
 blocked ──→ planned
 blocked ──→ executed
 ```
 
 | From | To | When |
 |------|----|------|
-| `initialized` | `discussed` | User runs `@k-discuss` to set preferences |
-| `initialized` | `planned` | User runs `@k-plan` (skipping discuss) |
-| `discussed` | `planned` | Planning completes after discuss |
+| `specced` | `discussed` | User runs `@k-discuss` to set preferences |
+| `specced` | `designed` | User runs `@k-design` (skipping discuss) |
+| `discussed` | `designed` | Design completes after discuss |
+| `designed` | `planned` | Task planning completes |
 | `planned` | `executing` | Execution begins |
 | `executing` | `executed` | All plans in all waves complete |
 | `executed` | `complete` | Verification passes |
 | `complete` | `shipped` | Project finalized |
-| `blocked` | `initialized` | Blocker resolved, restart from init |
+| `blocked` | `specced` | Blocker resolved, restart from spec |
+| `blocked` | `designed` | Blocker resolved, restart from designed |
 | `blocked` | `planned` | Blocker resolved, restart from planned |
 | `blocked` | `executed` | Blocker resolved, restart from executed |
 
 !!! warning
-    Invalid transitions (e.g., `initialized` → `executed`) are rejected by the MCP tool with a structured error.
+    Invalid transitions (e.g., `specced` → `executed`) are rejected by the MCP tool with a structured error.
 
 ## Blockers
 

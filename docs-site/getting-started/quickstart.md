@@ -6,12 +6,12 @@
 kiro-cli --agent konductor
 ```
 
-## Initialize Your Project
+## Define Your Project Spec
 
-Type `@k-init` and press Tab, or simply type:
+Type `@k-spec` (or `@k-init`), or simply type:
 
 ```
-> initialize my project
+> spec my project
 ```
 
 Konductor will interview you to understand your project goals, then generate:
@@ -22,16 +22,18 @@ Konductor will interview you to understand your project goals, then generate:
 
 ## Advance Through the Pipeline
 
-Use `@k-next` (or type `next`) to move through each phase automatically:
+Use `@k-next` (or type `next`) to move through each step automatically:
 
 ```
 > next
 ```
 
-Or run specific phases using prompt shortcuts:
+Or run specific steps using prompt shortcuts:
 
 ```
+> @k-design 01
 > @k-plan 01
+> @k-review 01
 > @k-exec
 > @k-verify
 > @k-ship
@@ -51,8 +53,10 @@ Type `@k-` then press Tab to see all available commands:
 
 | Shortcut | Description |
 |----------|-------------|
-| `@k-init` | Initialize a new project |
-| `@k-plan` | Plan a phase (requires phase number) |
+| `@k-spec` | Define project requirements (alias: `@k-init`) |
+| `@k-design` | Create architecture for a phase |
+| `@k-plan` | Break design into execution plans |
+| `@k-review` | Review design and plans |
 | `@k-exec` | Execute the current phase |
 | `@k-verify` | Verify the current phase |
 | `@k-ship` | Ship and finalize |
@@ -64,7 +68,7 @@ Type `@k-` then press Tab to see all available commands:
 ## Pipeline Flow
 
 ```
-Initialize → Research → Plan → Design Review → Execute (per-task + two-stage review) → Verify → Ship
+Spec → Discover (optional) → Design → Plan → Review → Execute (per-task + two-stage review) → Verify → Ship
 ```
 
-Each phase outputs artifacts to `.konductor/` that guide the next phase, preventing context rot and ensuring consistency.
+Each phase outputs artifacts to `.konductor/` that guide the next step, preventing context rot and ensuring consistency.

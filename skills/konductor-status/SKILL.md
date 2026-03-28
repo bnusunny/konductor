@@ -19,7 +19,7 @@ Call the `status` MCP tool. This returns a structured JSON report with:
 - `next_suggestion`
 
 If the tool returns a `STATE_NOT_FOUND` error, tell the user:
-> "No Konductor project found. Run 'init' to initialize a project."
+> "No Konductor project found. Run 'spec' to initialize a project."
 
 Then stop.
 
@@ -90,13 +90,14 @@ Last activity: {last_activity_relative} ({last_activity_absolute})
 - · = pending
 
 **Next step suggestions by current step:**
-- `initialized` → "Say 'next' to start planning, or 'discuss phase {n}' to set preferences first."
-- `discussed` → "Say 'next' to begin planning phase {n}."
+- `specced` → "Say 'next' to start design, or 'discuss phase {n}' to set preferences first."
+- `discussed` → "Say 'next' to begin designing phase {n}."
+- `designed` → "Say 'next' to create execution plans."
 - `planned` → "Say 'exec' to execute the plans."
 - `executing` → "Execution in progress. Wait for completion or check logs."
 - `executed` → "Say 'next' to verify the phase."
 - `complete` → "Phase {n} complete. Say 'next' to move to phase {n+1}."
-- `shipped` → "All phases shipped. Add new phases to roadmap.md or say 'init' to start a new project."
+- `shipped` → "All phases shipped. Add new phases to roadmap.md or say 'spec' to start a new project."
 - `blocked` → "Resolve the blocker with `state_resolve_blocker`, then say 'next'."
 
 ## Error Handling
@@ -104,7 +105,7 @@ Last activity: {last_activity_relative} ({last_activity_absolute})
 **Missing state files:**
 If the `status` tool returns an error:
 1. Report the error
-2. Suggest running `init` to reinitialize (warn about overwriting)
+2. Suggest running `spec` to re-spec (warn about overwriting)
 
 **Empty results directory:**
 If `.konductor/.results/` is empty, that's normal for newly initialized projects — simply report no activity yet.

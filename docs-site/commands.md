@@ -4,37 +4,57 @@
 
 All commands are available as Tab-completable prompts. Type `@k-` then press Tab.
 
-### `@k-init` — Initialize Project
+### `@k-spec` — Define Project Spec
 
 Discovers project goals, generates spec documents (`project.md`, `requirements.md`, `roadmap.md`), and sets up the pipeline.
 
 ```
-> @k-init
+> @k-spec
 ```
 
-Creates the `.konductor/` directory with initial state.
+Creates the `.konductor/` directory with initial state. `@k-init` works as an alias.
 
-After all phases are shipped, run `@k-init` again to add new phases to the existing project or reinitialize from scratch.
+After all phases are shipped, run `@k-spec` again to add new phases to the existing project or re-spec from scratch.
 
-### `@k-plan` — Plan a Phase
+### `@k-design` — Create Phase Architecture
 
-Researches the ecosystem, creates execution plans with tasks and acceptance criteria, runs design review, and asks for user approval.
+Creates the phase-level architecture with component interactions, key decisions, and interfaces. Runs ecosystem discovery if enabled.
+
+```
+> @k-design 01
+```
+
+Takes a phase number as argument. Creates `design.md` in `.konductor/phases/{phase}/`.
+
+### `@k-plan` — Create Execution Plans
+
+Breaks the phase design into execution plans with tasks, acceptance criteria, and wave ordering. Validates plans.
 
 ```
 > @k-plan 01
 ```
 
-Takes a phase number as argument. Creates plan files in `.konductor/phases/{phase}/plans/`, a `design.md` with phase-level architecture, and a `review.md` with design review findings.
+Takes a phase number as argument. Creates plan files in `.konductor/phases/{phase}/plans/`.
+
+### `@k-review` — Review Design and Plans
+
+Reviews the architecture and plans before execution. Evaluates soundness, feasibility, consistency, and requirement coverage.
+
+```
+> @k-review 01
+```
+
+Takes a phase number as argument. Creates `review.md` with verdict and asks for user approval.
 
 ### `@k-exec` — Execute Current Phase
 
-Spawns executor subagents to implement each plan following TDD workflow, then runs automated code review.
+Dispatches fresh executor per task following TDD workflow, then runs two-stage review (spec compliance + code quality).
 
 ```
 > @k-exec
 ```
 
-Executes plans wave by wave. After execution, a code reviewer checks all modified files and reports issues. Creates summary files for completed plans and `code-review.md` with findings.
+Executes plans wave by wave with per-task dispatch.
 
 ### `@k-verify` — Verify Current Phase
 
@@ -74,7 +94,7 @@ Displays phase progress, current position, recent activity, blockers, and next s
 
 ### `@k-discuss` — Discuss Phase
 
-Sets context for a phase before planning — approach preferences, library choices, architectural trade-offs.
+Sets context for a phase before design — approach preferences, library choices, architectural trade-offs.
 
 ```
 > @k-discuss 01
@@ -90,7 +110,7 @@ Analyzes existing code structure, tech stack, architecture patterns, testing set
 > @k-map
 ```
 
-Used for brownfield projects during initialization.
+Used for brownfield projects during spec.
 
 ## MCP Tools
 
@@ -102,6 +122,7 @@ These tools are used by the orchestrator agent for deterministic state managemen
 | `state_transition` | Advance to a new step (validates the transition is allowed) |
 | `state_add_blocker` | Add a blocker to the current phase |
 | `state_resolve_blocker` | Resolve a blocker for a phase |
+| `state_advance_phase` | Advance a shipped project to a new phase |
 | `plans_list` | List plans for a phase with wave, type, dependencies, and completion status |
 | `status` | Get a structured status report with progress, blockers, and config |
 | `config_get` | Read current configuration from `config.toml` (with defaults applied) |
@@ -115,7 +136,7 @@ All MCP tools return structured JSON errors:
 {
   "error": true,
   "code": "INVALID_TRANSITION",
-  "message": "Invalid transition: 'initialized' → 'executed'"
+  "message": "Invalid transition: 'specced' → 'executed'"
 }
 ```
 

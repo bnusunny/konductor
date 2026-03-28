@@ -10,7 +10,7 @@ The main `konductor` agent manages pipeline state and delegates work to speciali
 
 A local MCP server provides typed prompts and tools over stdio:
 
-- **9 prompts** with Tab-completable shortcuts (`@k-init`, `@k-plan`, etc.) — with typed arguments where needed
+- **12 prompts** with Tab-completable shortcuts (`@k-spec`, `@k-design`, `@k-plan`, etc.) — with typed arguments where needed
 - **State management tools** (`state_get`, `state_transition`, `state_add_blocker`, `state_resolve_blocker`) — eliminates fragile LLM-generated TOML
 - **Config tools** (`config_get`, `config_init`) — typed config access with defaults applied
 - **Query tools** (`plans_list`, `status`) — returns structured JSON instead of requiring the LLM to parse files
@@ -19,7 +19,7 @@ Built with [rmcp](https://github.com/modelcontextprotocol/rust-sdk) (official Ru
 
 ## Skills
 
-Each command is a skill (`konductor-init`, `konductor-plan`, `konductor-exec`, etc.) with structured instructions. Skills define:
+Each command is a skill (`konductor-spec`, `konductor-design`, `konductor-plan`, `konductor-exec`, etc.) with structured instructions. Skills define:
 
 - When to trigger (keywords like "initialize", "next", "plan")
 - Step-by-step execution logic
@@ -33,7 +33,8 @@ Specialized agents handle specific tasks:
 |-------|------|
 | `konductor-discoverer` | Interviews users to understand project goals |
 | `konductor-researcher` | Analyzes codebases and documents patterns |
-| `konductor-planner` | Creates detailed phase plans with tasks |
+| `konductor-designer` | Creates phase-level architecture and design documents |
+| `konductor-planner` | Creates detailed execution plans with tasks |
 | `konductor-design-reviewer` | Reviews architecture and design for soundness, feasibility, and risk |
 | `konductor-executor` | Implements code following TDD principles (one fresh agent per task) |
 | `konductor-spec-reviewer` | Reviews task output for spec compliance |

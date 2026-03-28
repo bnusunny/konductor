@@ -2,22 +2,30 @@
 
 Konductor transforms high-level project requirements into working software through a structured pipeline with built-in quality gates.
 
+## Phases vs Steps
+
+A **phase** is a unit of work from the roadmap (e.g. "Phase 01: Auth System"). A project has multiple phases. Each phase progresses through the same **steps** — the pipeline stages listed below. Think of phases as *what* you're building, and steps as *how* you build it.
+
 ```
 ┌─────────────┐
-│ Initialize  │ → project.md, requirements.md, roadmap.md
+│    Spec     │ → project.md, requirements.md, roadmap.md
 └──────┬──────┘
        ↓
 ┌─────────────┐
-│  Research   │ → structure.md, tech.md, patterns.md
+│  Discover   │ → research.md (optional)
 └──────┬──────┘
        ↓
 ┌─────────────┐
-│    Plan     │ → phases/*.md (tasks + acceptance criteria)
+│   Design    │ → design.md (architecture, components, decisions)
 └──────┬──────┘
        ↓
-┌───────────────┐
-│Design Review  │ → review.md (approve/revise/reject)
-└──────┬────────┘
+┌─────────────┐
+│    Plan     │ → plans/*.md (tasks + acceptance criteria)
+└──────┬──────┘
+       ↓
+┌─────────────┐
+│   Review    │ → review.md (approve/revise/reject)
+└──────┬──────┘
        ↓
 ┌─────────────┐
 │  Execute    │ → per-task dispatch + two-stage review
@@ -36,6 +44,6 @@ Konductor transforms high-level project requirements into working software throu
 └─────────────┘
 ```
 
-Each phase outputs artifacts to `.konductor/` that feed into the next phase. This prevents context rot — each subagent starts fresh with only the relevant documents it needs.
+Each phase outputs artifacts to `.konductor/` that feed into the next step. This prevents context rot — each subagent starts fresh with only the relevant documents it needs.
 
-Design review and code review are enabled by default but can be disabled via feature flags in `config.toml`. See [Configuration](../reference/configuration.md) for details.
+Discover, review, and code review are enabled by default but can be disabled via feature flags in `config.toml`. See [Configuration](../reference/configuration.md) for details.

@@ -1,0 +1,41 @@
+{
+    "name": "konductor-designer",
+    "description": "Creates phase-level architecture designs with component interactions, key decisions, interfaces, and trade-offs.",
+    "tools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
+    "allowedTools": [
+        "read",
+        "write",
+        "shell",
+        "code"
+    ],
+    "resources": [
+        "file://.konductor/project.md",
+        "file://.konductor/requirements.md",
+        "file://.konductor/roadmap.md",
+        "file://.konductor/phases/*/research.md",
+        "file://.kiro/steering/**/*.md",
+        "file://~/.kiro/steering/**/*.md"
+    ],
+    "hooks": {
+        "preToolUse": [
+            {
+                "matcher": "*",
+                "command": "konductor hook",
+                "timeout_ms": 1000
+            }
+        ],
+        "postToolUse": [
+            {
+                "matcher": "*",
+                "command": "konductor hook",
+                "timeout_ms": 2000
+            }
+        ]
+    },
+    "prompt": "You are a software architect. Create a phase-level design document (design.md) covering: overall architecture, component interactions, key technical decisions, interfaces between components, and trade-offs. Focus on the 'what' and 'why', not the 'how' — task-level details belong in execution plans."
+}

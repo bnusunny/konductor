@@ -1,17 +1,19 @@
 # Konductor
 
-Spec-driven development for Kiro CLI — orchestrates project planning, execution, verification, and shipping through a structured pipeline.
+Spec-driven development for Kiro CLI — orchestrates project spec, design, planning, execution, verification, and shipping through a structured pipeline.
 
 ## What It Does
 
-Konductor transforms high-level project requirements into working software through a systematic six-phase pipeline:
+Konductor transforms high-level project requirements into working software through a systematic pipeline:
 
-1. **Initialize** — Discovers project goals, generates spec documents (project.md, requirements.md, roadmap.md)
-2. **Research** — Analyzes codebase, maps dependencies, identifies patterns and conventions
-3. **Plan** — Breaks work into phases with specific tasks, acceptance criteria, and strict granularity rules
-4. **Execute** — Dispatches a fresh executor per task with TDD, runs two-stage review (spec compliance + code quality) after each task
-5. **Verify** — Runs tests, validates acceptance criteria, ensures quality gates pass
-6. **Ship** — Creates release notes, commits work, opens pull requests, moves to next phase
+1. **Spec** — Discovers project goals, generates spec documents (project.md, requirements.md, roadmap.md)
+2. **Discover** — Analyzes codebase, maps dependencies, identifies patterns and conventions (optional)
+3. **Design** — Creates phase-level architecture, component interactions, and key decisions
+4. **Plan** — Breaks design into tasks with acceptance criteria and strict granularity rules
+5. **Review** — Reviews architecture and plans for soundness, feasibility, and requirement coverage
+6. **Execute** — Dispatches a fresh executor per task with TDD, runs two-stage review (spec compliance + code quality) after each task
+7. **Verify** — Runs tests, validates acceptance criteria, ensures quality gates pass
+8. **Ship** — Creates release notes, commits work, opens pull requests, moves to next phase
 
 Each phase outputs artifacts to `.konductor/` that guide the next phase, preventing context rot and ensuring consistency.
 
@@ -29,10 +31,10 @@ Start the Konductor orchestrator:
 kiro-cli --agent konductor
 ```
 
-Initialize your project:
+Define your project spec:
 
 ```
-> @k-init
+> @k-spec
 ```
 
 Advance through the pipeline:
@@ -49,10 +51,12 @@ Check current status:
 > @k-status
 ```
 
-Execute specific phases:
+Run specific steps:
 
 ```
+> @k-design 01
 > @k-plan 01
+> @k-review 01
 > @k-exec
 > @k-verify
 > @k-ship
@@ -62,15 +66,15 @@ Execute specific phases:
 
 ```
 ┌─────────────┐
-│ Initialize  │ → project.md, requirements.md, roadmap.md
+│    Spec     │ → project.md, requirements.md, roadmap.md
 └──────┬──────┘
        ↓
 ┌─────────────┐
-│  Research   │ → structure.md, tech.md, patterns.md
+│   Design    │ → design.md (architecture, decisions)
 └──────┬──────┘
        ↓
 ┌─────────────┐
-│    Plan     │ → phases/*.md (with tasks + acceptance criteria)
+│    Plan     │ → plans/*.md (tasks + acceptance criteria)
 └──────┬──────┘
        ↓
 ┌─────────────┐
@@ -90,9 +94,11 @@ Execute specific phases:
 
 | Command | Prompt Shortcut | Description |
 |---------|----------------|-------------|
-| `initialize` | `@k-init` | Start a new project, discover requirements, generate spec docs |
-| `next` | `@k-next` | Advance to the next pipeline phase automatically |
-| `plan` | `@k-plan` | Generate phase plans with tasks and acceptance criteria |
+| `spec` | `@k-spec` | Define project requirements, generate spec docs (alias: `@k-init`) |
+| `design` | `@k-design` | Create phase-level architecture and design |
+| `plan` | `@k-plan` | Break design into execution plans with tasks |
+| `review` | `@k-review` | Review design and plans before execution |
+| `next` | `@k-next` | Advance to the next pipeline step automatically |
 | `exec` | `@k-exec` | Execute tasks for current phase (TDD workflow) |
 | `verify` | `@k-verify` | Run tests and validate acceptance criteria |
 | `status` | `@k-status` | Show current phase, progress, and next steps |
@@ -124,12 +130,12 @@ The main `konductor` agent manages pipeline state and delegates work to speciali
 
 **2. MCP Server (`konductor mcp`)**
 A local MCP server provides:
-- 9 prompts with Tab-completable shortcuts (`@k-init`, `@k-plan`, etc.) — with typed arguments where needed
+- 12 prompts with Tab-completable shortcuts (`@k-spec`, `@k-design`, `@k-plan`, etc.) — with typed arguments where needed
 - State management tools (`state_get`, `state_transition`, `state_add_blocker`, `state_resolve_blocker`) — eliminates fragile LLM-generated TOML
 - Query tools (`plans_list`, `status`) — returns structured JSON instead of requiring the LLM to parse files
 
 **3. Skills**
-Each command is a skill (`konductor-init`, `konductor-plan`, `konductor-exec`, etc.) with structured instructions. Skills define:
+Each command is a skill (`konductor-spec`, `konductor-design`, `konductor-plan`, `konductor-exec`, etc.) with structured instructions. Skills define:
 - When to trigger (keywords like "initialize", "next", "plan")
 - Step-by-step execution logic
 - Output artifacts and verification steps
@@ -139,7 +145,8 @@ Each command is a skill (`konductor-init`, `konductor-plan`, `konductor-exec`, e
 Specialized agents handle specific tasks:
 - `konductor-discoverer` — Interviews users to understand project goals
 - `konductor-researcher` — Analyzes codebases and documents patterns
-- `konductor-planner` — Creates detailed phase plans with tasks
+- `konductor-designer` — Creates phase-level architecture and design documents
+- `konductor-planner` — Creates detailed execution plans with tasks
 - `konductor-executor` — Implements code following TDD principles (one fresh agent per task)
 - `konductor-spec-reviewer` — Reviews task output for spec compliance
 - `konductor-code-reviewer` — Reviews code changes for quality and security
@@ -205,9 +212,11 @@ EOF
 │   ├── konductor-planner.json
 │   └── ...
 ├── skills/
-│   ├── konductor-init/
-│   ├── konductor-next/
+│   ├── konductor-spec/
+│   ├── konductor-design/
 │   ├── konductor-plan/
+│   ├── konductor-review/
+│   ├── konductor-next/
 │   ├── konductor-exec/
 │   ├── konductor-verify/
 │   └── ...

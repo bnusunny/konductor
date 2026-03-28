@@ -153,7 +153,7 @@ Recorded {decisions_count} decisions for Phase {number}: {name}.
 
 Context saved to: `.konductor/phases/{phase}/context.md`
 
-These decisions will guide the planning process. Say 'next' to begin planning this phase.
+These decisions will guide the design process. Say 'next' to begin designing this phase.
 ```
 
 ## Error Handling
@@ -163,7 +163,7 @@ If the phase doesn't exist in the roadmap, report it and stop.
 
 **State file missing:**
 If calling `state_get` returns a `STATE_NOT_FOUND` error:
-1. Tell the user: "No Konductor project found. Run 'init' first."
+1. Tell the user: "No Konductor project found. Run 'spec' first."
 2. Stop
 
 **User provides insufficient input:**

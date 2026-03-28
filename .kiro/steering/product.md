@@ -11,9 +11,9 @@ Spec-driven development orchestrator for Kiro CLI. Manages project initializatio
 
 ## Key Features
 - MCP server with deterministic state management tools (state_init, state_get, state_transition, state_add_blocker, state_resolve_blocker, plans_list, status)
-- MCP prompts for pipeline stages (k-init, k-plan, k-exec, k-verify, k-ship, k-next, k-status, k-discuss, k-map)
+- MCP prompts for pipeline stages (k-spec, k-init, k-design, k-plan, k-review, k-exec, k-verify, k-ship, k-next, k-status, k-discuss, k-map)
 - Hook processor for file tracking, safety guardrails, stuck detection, tool call ledger, and workflow validation (pre/post tool use)
-- Skill-based pipeline: init → discuss → plan → exec → verify → ship
+- Skill-based pipeline: spec → discuss → design → plan → review → exec → verify → ship
 - Multiple synthetic test projects (CLI calculator, REST API SAM, API + DynamoDB SAM)
 - Per-project granular benchmark metrics (timing, test pass rates, lint, artifact quality)
 - SAM deployment pipeline (deploy → verify → teardown)
